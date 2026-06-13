@@ -1,0 +1,11 @@
+# Core pipeline (corpus parsing, normalization, KG, BM25 retrieval, discovery,
+# hypothesis cards, CLI) runs on the Python standard library alone — no install
+# needed beyond Python 3.9+.
+
+# Optional: HTTP API layer (herb_hermes.api.server)
+fastapi>=0.110
+uvicorn>=0.29
+httpx>=0.27        # only for the FastAPI TestClient / smoke tests
+
+# Optional: test runner
+pytest>=8.0

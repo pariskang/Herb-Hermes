@@ -1,0 +1,10 @@
+# Built knowledge base (large; rebuild with `python -m herb_hermes.index_build`)
+data/processed/
+
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+.DS_Store

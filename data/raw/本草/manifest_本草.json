@@ -1,0 +1,458 @@
+[
+  {
+    "category": "本草",
+    "title": "十二經補瀉溫涼引經藥歌",
+    "classification_source": "fallback_title_rule_metadata_no_category",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/十二經補瀉溫涼引經藥歌"
+  },
+  {
+    "category": "本草",
+    "title": "千金食治",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/千金食治"
+  },
+  {
+    "category": "本草",
+    "title": "吳普本草",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/吳普本草"
+  },
+  {
+    "category": "本草",
+    "title": "增廣和劑局方藥性總論",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/增廣和劑局方藥性總論"
+  },
+  {
+    "category": "本草",
+    "title": "得配本草",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 15,
+    "source_path": "/mnt/data/book_extract_all/得配本草"
+  },
+  {
+    "category": "本草",
+    "title": "新修本草",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 22,
+    "source_path": "/mnt/data/book_extract_all/新修本草"
+  },
+  {
+    "category": "本草",
+    "title": "服食導餌",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/服食導餌"
+  },
+  {
+    "category": "本草",
+    "title": "本經疏證",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 39,
+    "source_path": "/mnt/data/book_extract_all/本經疏證"
+  },
+  {
+    "category": "本草",
+    "title": "本經逢原",
+    "classification_source": "fallback_title_rule_metadata_no_category",
+    "is_dir": true,
+    "file_count": 39,
+    "source_path": "/mnt/data/book_extract_all/本經逢原"
+  },
+  {
+    "category": "本草",
+    "title": "本經逢原_1",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 40,
+    "source_path": "/mnt/data/book_extract_all/本經逢原_1"
+  },
+  {
+    "category": "本草",
+    "title": "本草乘雅半偈",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 19,
+    "source_path": "/mnt/data/book_extract_all/本草乘雅半偈"
+  },
+  {
+    "category": "本草",
+    "title": "本草便讀",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/本草便讀"
+  },
+  {
+    "category": "本草",
+    "title": "本草備要",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 16,
+    "source_path": "/mnt/data/book_extract_all/本草備要"
+  },
+  {
+    "category": "本草",
+    "title": "本草備要_條列版",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 566,
+    "source_path": "/mnt/data/book_extract_all/本草備要_條列版"
+  },
+  {
+    "category": "本草",
+    "title": "本草分經",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/本草分經"
+  },
+  {
+    "category": "本草",
+    "title": "本草品匯精要",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 65,
+    "source_path": "/mnt/data/book_extract_all/本草品匯精要"
+  },
+  {
+    "category": "本草",
+    "title": "本草問答",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/本草問答"
+  },
+  {
+    "category": "本草",
+    "title": "本草圖經",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 17,
+    "source_path": "/mnt/data/book_extract_all/本草圖經"
+  },
+  {
+    "category": "本草",
+    "title": "本草害利",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/本草害利"
+  },
+  {
+    "category": "本草",
+    "title": "本草崇原",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/本草崇原"
+  },
+  {
+    "category": "本草",
+    "title": "本草從新",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 24,
+    "source_path": "/mnt/data/book_extract_all/本草從新"
+  },
+  {
+    "category": "本草",
+    "title": "本草徵要",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/本草徵要"
+  },
+  {
+    "category": "本草",
+    "title": "本草思辨錄",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 8,
+    "source_path": "/mnt/data/book_extract_all/本草思辨錄"
+  },
+  {
+    "category": "本草",
+    "title": "本草撮要",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/本草撮要"
+  },
+  {
+    "category": "本草",
+    "title": "本草擇要綱目",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/本草擇要綱目"
+  },
+  {
+    "category": "本草",
+    "title": "本草新編",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 17,
+    "source_path": "/mnt/data/book_extract_all/本草新編"
+  },
+  {
+    "category": "本草",
+    "title": "本草易讀",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 15,
+    "source_path": "/mnt/data/book_extract_all/本草易讀"
+  },
+  {
+    "category": "本草",
+    "title": "本草求真",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 15,
+    "source_path": "/mnt/data/book_extract_all/本草求真"
+  },
+  {
+    "category": "本草",
+    "title": "本草求真_1",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 16,
+    "source_path": "/mnt/data/book_extract_all/本草求真_1"
+  },
+  {
+    "category": "本草",
+    "title": "本草經解",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/本草經解"
+  },
+  {
+    "category": "本草",
+    "title": "本草經集注",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 11,
+    "source_path": "/mnt/data/book_extract_all/本草經集注"
+  },
+  {
+    "category": "本草",
+    "title": "本草綱目",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 59,
+    "source_path": "/mnt/data/book_extract_all/本草綱目"
+  },
+  {
+    "category": "本草",
+    "title": "本草綱目別名錄",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/本草綱目別名錄"
+  },
+  {
+    "category": "本草",
+    "title": "本草綱目拾遺",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 15,
+    "source_path": "/mnt/data/book_extract_all/本草綱目拾遺"
+  },
+  {
+    "category": "本草",
+    "title": "本草蒙筌",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 15,
+    "source_path": "/mnt/data/book_extract_all/本草蒙筌"
+  },
+  {
+    "category": "本草",
+    "title": "本草衍義",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/本草衍義"
+  },
+  {
+    "category": "本草",
+    "title": "本草述鉤元",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 42,
+    "source_path": "/mnt/data/book_extract_all/本草述鉤元"
+  },
+  {
+    "category": "本草",
+    "title": "民間草藥藥性賦",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/民間草藥藥性賦"
+  },
+  {
+    "category": "本草",
+    "title": "海藥本草",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/海藥本草"
+  },
+  {
+    "category": "本草",
+    "title": "湯液本草",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/湯液本草"
+  },
+  {
+    "category": "本草",
+    "title": "滇南本草",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/滇南本草"
+  },
+  {
+    "category": "本草",
+    "title": "珍珠囊補遺藥性賦",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/珍珠囊補遺藥性賦"
+  },
+  {
+    "category": "本草",
+    "title": "神農本草經",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/神農本草經"
+  },
+  {
+    "category": "本草",
+    "title": "神農本草經_1",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/神農本草經_1"
+  },
+  {
+    "category": "本草",
+    "title": "神農本草經_2",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/神農本草經_2"
+  },
+  {
+    "category": "本草",
+    "title": "神農本草經併注_條列版",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/神農本草經併注_條列版"
+  },
+  {
+    "category": "本草",
+    "title": "神農本草經百種錄",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/神農本草經百種錄"
+  },
+  {
+    "category": "本草",
+    "title": "神農本草經讀",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/神農本草經讀"
+  },
+  {
+    "category": "本草",
+    "title": "神農本草經贊",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/神農本草經贊"
+  },
+  {
+    "category": "本草",
+    "title": "藥徵",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/藥徵"
+  },
+  {
+    "category": "本草",
+    "title": "藥徵續編",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/藥徵續編"
+  },
+  {
+    "category": "本草",
+    "title": "藥性歌括四百味",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/藥性歌括四百味"
+  },
+  {
+    "category": "本草",
+    "title": "藥鑑",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/藥鑑"
+  },
+  {
+    "category": "本草",
+    "title": "要藥分劑",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/要藥分劑"
+  },
+  {
+    "category": "本草",
+    "title": "證類本草",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 38,
+    "source_path": "/mnt/data/book_extract_all/證類本草"
+  },
+  {
+    "category": "本草",
+    "title": "食療本草",
+    "classification_source": "fallback_title_rule_no_index",
+    "is_dir": true,
+    "file_count": 0,
+    "source_path": "/mnt/data/book_extract_all/食療本草"
+  },
+  {
+    "category": "本草",
+    "title": "食鑑本草",
+    "classification_source": "fallback_title_rule_no_index",
+    "is_dir": true,
+    "file_count": 0,
+    "source_path": "/mnt/data/book_extract_all/食鑑本草"
+  }
+]
