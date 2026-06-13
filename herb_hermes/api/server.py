@@ -136,6 +136,30 @@ def analyze(name: str) -> dict:
     return res
 
 
+# ---- LLM agent (智能问答) ----------------------------------------------
+@app.get("/llm/status")
+def llm_status_ep() -> dict:
+    from ..llm.client import llm_status
+    return llm_status()
+
+
+@app.post("/agent/ask")
+def agent_ask(payload: dict = Body(...)) -> dict:
+    """自主智能体问答：LLM 调用接地工具检索古籍证据后作答。
+    未配置 LLM 时返回 503（前端回退到规则检索）。"""
+    from ..llm.client import LLMClient
+    from ..llm.agent import HerbAgent
+    question = (payload or {}).get("question", "").strip()
+    if not question:
+        raise HTTPException(400, "question is required")
+    client = LLMClient()
+    if not client.available:
+        raise HTTPException(503,
+            "未配置 LLM。请安装 litellm 并设置 HERB_HERMES_LLM_MODEL 及 API Key。")
+    agent = HerbAgent(get_kb(), client, max_steps=int((payload or {}).get("max_steps", 6)))
+    return agent.ask(question, history=(payload or {}).get("history")).to_dict()
+
+
 @app.get("/formulas")
 def formulas(herb: str, limit: int = Query(50, ge=1, le=300)) -> dict:
     kb = get_kb()

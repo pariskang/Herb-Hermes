@@ -497,6 +497,97 @@ function renderHypCard(body, card) {
   body.appendChild(el(`<div class="disclaimer">⚠ 现代机制为模板化候选假设，须经网络药理学、GEO 差异表达、单细胞定位与实验验证；本卡不构成临床处方建议。</div>`));
 }
 
+/* ----------------------------- Agent ------------------------------ */
+const TOOL_LABEL = {
+  search_corpus: '古籍检索', trace_herb: '本草溯源', herb_info: '结构化条目',
+  herb_pairs: '药对挖掘', formula_genealogy: '方剂谱系', analyze_formula: '君臣佐使·剂量',
+  formulas_with_herb: '含药方剂', generate_hypothesis: '科研假设',
+};
+
+VIEWS.agent = async function () {
+  const c = $('#content');
+  c.appendChild(el(`<div class="view">
+    <div class="view-head"><h2>智能问答</h2><p>大模型自主调用接地工具，在真实古籍证据上推理作答（litellm 接入，每步可溯）</p></div>
+    <div class="controls">
+      <div class="ctrl" style="flex:1;max-width:640px"><label>提问</label>
+        <input id="ag-in" style="flex:1" placeholder="如：补肾强骨可用哪些本草？桂枝汤与小建中汤的关系？黄芪当归药对的科研价值？" /></div>
+      <button class="btn" id="ag-go">提问</button>
+    </div>
+    <div class="tags" style="margin:-6px 0 14px">
+      <span class="chip" onclick="agAsk('杜仲的功效与历代著录？')">杜仲的功效与历代著录？</span>
+      <span class="chip gold" onclick="agAsk('桂枝汤的君臣佐使与衍生方？')">桂枝汤的君臣佐使与衍生方？</span>
+      <span class="chip" onclick="agAsk('补肾活血治疗骨质疏松的候选药对与科研假设？')">骨质疏松候选药对与假设？</span>
+    </div>
+    <div id="ag-body"></div></div>`));
+  $('#topTitle').textContent = '智能问答 · Herb-Hermes Agent';
+  $('#ag-go').addEventListener('click', () => agAsk($('#ag-in').value.trim()));
+  $('#ag-in').addEventListener('keydown', e => { if (e.key === 'Enter') agAsk($('#ag-in').value.trim()); });
+  try {
+    const s = await api('/llm/status');
+    if (!s.configured) {
+      $('#ag-body').appendChild(el(`<div class="card"><h3><span class="dot" style="background:var(--rust)"></span>未接入大语言模型</h3>
+        <p class="muted" style="line-height:1.9">智能问答需要 litellm + 模型。请：<br>
+        <code style="color:var(--celadon)">pip install litellm</code>，并设置环境变量
+        <code style="color:var(--celadon)">HERB_HERMES_LLM_MODEL</code>（如 <code>gpt-4o-mini</code> / <code>claude-sonnet-4-6</code> / <code>ollama/qwen2.5</code>）及对应 API Key，重启服务即可。<br>
+        亦可通过 MCP 让 Claude Code / Codex 直接调用本系统工具：<code style="color:var(--celadon)">claude mcp add herb-hermes -- python -m herb_hermes.mcp_server</code></p>
+        <p class="sm muted">在此之前，可使用左侧「本草溯源 / 方剂谱系 / 药对配伍 / 科研假设」等规则化模块。</p></div>`));
+    }
+  } catch (e) { /* offline */ }
+};
+
+window.agAsk = function (q) { $('#ag-in').value = q; agAsk(q); };
+async function agAsk(q) {
+  q = (q || '').trim(); if (!q) return;
+  go('agent'); // reset view
+  setTimeout(async () => {
+    $('#ag-in').value = q;
+    const body = $('#ag-body'); body.innerHTML = '';
+    body.appendChild(el(`<div class="card"><div class="evi" style="border:none"><b style="color:var(--celadon)">问：</b>${esc(q)}</div>
+      <div id="ag-think" class="muted sm"><span class="loader"></span> 智能体推理中…</div></div>`));
+    try {
+      const r = await fetch(API + '/agent/ask', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: q }) });
+      if (r.status === 503) { body.innerHTML = ''; VIEWS.agent(); return; }
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      renderAgent(body, await r.json());
+    } catch (e) { $('#ag-think').innerHTML = `<span style="color:var(--rust)">出错：${esc(e.message)}</span>`; }
+  }, 30);
+}
+
+function renderAgent(body, res) {
+  body.innerHTML = '';
+  const ans = el(`<div class="card" style="margin-bottom:16px">
+    <h3><span class="dot"></span>回答 <span class="speak" onclick="speak(${JSON.stringify(res.answer)})">🔊 朗读</span></h3>
+    <div style="line-height:1.95;white-space:pre-wrap">${esc(res.answer)}</div>
+    ${res.citations && res.citations.length ? '<div class="sec-label">引文</div><div class="tags">' + res.citations.map(c => `<span class="chip muted">${esc(c)}</span>`).join('') + '</div>' : ''}
+    <div class="disclaimer">回答由大模型综合工具检索的古籍证据生成；现代机制为待验证假设，不构成临床处方建议。模型：${esc(res.model || '—')}</div></div>`);
+  body.appendChild(ans);
+  if (res.steps && res.steps.length) {
+    const sc = el(`<div class="card"><h3><span class="dot" style="background:var(--gold)"></span>推理过程（${res.steps.length} 步 · 工具调用可溯）</h3><div id="ag-steps"></div></div>`);
+    body.appendChild(sc);
+    const host = sc.querySelector('#ag-steps');
+    res.steps.forEach((s, i) => {
+      const argStr = Object.entries(s.arguments || {}).map(([k, v]) => `${k}=${v}`).join(', ');
+      const summary = stepSummary(s);
+      host.appendChild(el(`<div class="evi"><div class="cite">▸ 第${i + 1}步 · <b>${esc(TOOL_LABEL[s.tool] || s.tool)}</b> <span class="sm muted">(${esc(argStr)})</span></div>
+        <div class="txt">${summary}</div></div>`));
+    });
+  }
+}
+
+function stepSummary(s) {
+  const r = s.result || {};
+  if (r.error) return `<span style="color:var(--rust)">${esc(r.error)}</span>`;
+  if (r.results) return r.results.slice(0, 3).map(x => `${esc(x.citation)}：${esc(x.snippet)}`).join('<br>') || '（无命中）';
+  if (r.evidence) return `异名 ${esc((r.aliases || []).join('、') || '—')}；证据 ${r.evidence.length} 条，例：${esc((r.evidence[0] || {}).citation || '')}`;
+  if (r.found && r.composition) return '组成：' + esc((Array.isArray(r.composition) ? r.composition : []).map(x => x.herb || x).join('、'));
+  if (r.pairs) return '药对：' + esc(r.pairs.slice(0, 6).map(p => `${p.with}(${p.count})`).join('、'));
+  if (r.formulas) return `${r.count} 首，例：` + esc(r.formulas.slice(0, 5).map(f => f.name).join('、'));
+  if (r.hypothesis_id) return `假设卡 ${esc(r.hypothesis_id)}：${esc(r.research_question || '')}`;
+  if (r.found === false) return '（未找到）';
+  return esc(_trim(JSON.stringify(r), 160));
+}
+function _trim(s, n) { return s.length > n ? s.slice(0, n) + '…' : s; }
+
 /* ----------------------------- Voice ------------------------------ */
 const Voice = {
   serverASR: false, serverTTS: false, recognizing: false, rec: null, mediaRec: null, chunks: [],

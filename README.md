@@ -1,11 +1,15 @@
-# Herb-Hermes 本草—方剂—机制—发现 证据操作系统 (MVP v0.3)
+# Herb-Hermes 本草—方剂—机制—发现 证据操作系统 (MVP v0.4)
 
 Herb-Hermes 是面向中医药经典本草与方剂演变的科学发现系统。本仓库实现了设计
 草案的**可运行闭环**：从古籍原文出发，完成本草结构化、药名归一与名物考订、
 本草溯源、**方剂谱系重建**、**君臣佐使推断**、**剂量古今换算**、引文可溯检索、
 知识图谱构建、药对共现挖掘，自动生成**引文落地的科研假设卡**，提供**「研究驾驶舱」
-Web 前端**将全部功能可视化，并支持**语音交互**（FireRedASR2S / CosyVoice3，
-GPU 部署，浏览器零依赖回退）。
+Web 前端**将全部功能可视化，支持**语音交互**（FireRedASR2S / CosyVoice3），
+并通过 **litellm 接入大语言模型 + 自主智能体**让大模型在真实古籍证据上推理作答，
+亦可作为 **MCP 工具服务**接入 Claude Code / Codex 等智能体客户端。
+
+> **规则 × 大模型 × 智能体**：确定性数据挖掘提供可溯源证据，大模型负责语义综合与
+> 问答，工具调用把两者耦合——模型只能引用工具检索到的古籍内容，显著降低幻觉。
 
 > MVP 主题切入：**补益类本草 + 骨质疏松 / 骨伤修复**（与设计草案第九节一致）。
 
@@ -58,6 +62,16 @@ python -m herb_hermes.cli report 杜仲 --out 杜仲.md   # 一键导出 Markdow
 
 # 4) 端到端 Demo（骨质疏松知识发现）
 python scripts/demo_osteoporosis.py
+
+# 5) 接入大语言模型 + 自主智能体（可选）
+pip install litellm
+export HERB_HERMES_LLM_MODEL=gpt-4o-mini        # 或 claude-sonnet-4-6 / ollama/qwen2.5
+export OPENAI_API_KEY=...                        # 或对应 provider 的 Key
+# 重启服务后，研究驾驶舱「智能问答」页即可用；或调用 POST /agent/ask
+
+# 6) 作为 MCP 工具接入 Claude Code / Codex（可选）
+pip install "mcp[cli]"
+claude mcp add herb-hermes -- python -m herb_hermes.mcp_server
 ```
 
 > 构建产物 `data/processed/herb_hermes_kb.json`（约 130MB）已被 `.gitignore`
@@ -87,7 +101,9 @@ python scripts/demo_osteoporosis.py
 | **剂量古今换算** | `formula_analysis/dosage.py`：解析古代剂量（兩/錢/分/銖/升/枚…），按朝代因子折算现代克数 |
 | 科研假设 Agent | `discovery/hypothesis.py`：模板化、引文落地的 Hypothesis Card（现代机制明确标注为「待验证假设」） |
 | **语音交互 Agent** | `voice/`：FireRedASR2S（ASR）+ CosyVoice3（TTS）可插拔后端，浏览器 Web Speech API 零依赖回退 |
-| 安全红线 | 假设卡与报告均声明「现代机制为待验证假设，不构成临床处方建议」 |
+| **大模型 + 自主智能体** | `llm/`：litellm 统一客户端 + 接地工具注册表 + ReAct 智能体（每条事实带引文、强约束防幻觉）；`MockLLMClient` 离线可测 |
+| **MCP 工具服务** | `mcp_server.py`：把全部工具暴露给 Claude Code / Codex / 任意 MCP 客户端 |
+| 安全红线 | 假设卡、报告、智能体回答均声明「现代机制为待验证假设，不构成临床处方建议」 |
 | 应用层 | `cli.py`、`api/server.py`、`report.py`（一键报告） |
 
 ### 名物考订（设计草案的核心壁垒）
@@ -126,18 +142,20 @@ herb_hermes/
   genealogy/     方剂谱系：源流/衍生/类方/演变
   formula_analysis/ 君臣佐使推断 + 剂量古今换算
   voice/         语音交互：FireRedASR2S (ASR) + CosyVoice3 (TTS) 可插拔后端
+  llm/           大模型接入(litellm) + 接地工具 + 自主智能体
+  mcp_server.py  MCP 工具服务（Claude Code / Codex 接入）
   discovery/     溯源 / 药对 / 假设卡
   store.py       KnowledgeBase：构建·持久化·查询的中枢
   index_build.py 构建知识库入口
   report.py      Markdown 报告导出
   cli.py         命令行界面
-  api/server.py  FastAPI 层（含前端托管 + 语音端点）
-frontend/        研究驾驶舱（index.html + styles.css + app.js，ECharts + 语音）
+  api/server.py  FastAPI 层（含前端托管 + 语音 + 智能体端点）
+frontend/        研究驾驶舱（index.html + styles.css + app.js，ECharts + 语音 + 智能问答）
 notebooks/       语音服务 GPU 部署 notebook
 data/raw/本草/   本草语料底座
 data/raw/方書/   方書语料底座
 scripts/         端到端 Demo
-tests/           pytest 测试（43 项）
+tests/           pytest 测试（49 项）
 docs/            设计与路线说明
 ```
 
