@@ -40,18 +40,21 @@
 - [ ] KEGG/Reactome 通路富集
 - [ ] 假设卡自动填充「现代证据」并给出证据分级
 
-## v0.4（检索与图谱升级）
+## v0.4（大模型 + 自主智能体 + MCP，已完成）
 
-- [ ] 向量检索 + 混合路由
-- [ ] GraphRAG / LightRAG 跨书跨代复杂问答
-- [ ] Neo4j/Kùzu 图数据库后端
+- [x] litellm 统一客户端（出站接 GPT/Claude/本地模型），`MockLLMClient` 离线可测
+- [x] 接地工具注册表（`llm/tools.py`）：8 个工具，结果均带古籍引文
+- [x] ReAct 自主智能体（`llm/agent.py`）：强约束防幻觉，回答带引文与全程工具调用记录
+- [x] MCP 工具服务（`mcp_server.py`）：接入 Claude Code / Codex / 任意 MCP 客户端
+- [x] 前端「智能问答」模块：流程可溯、引文卡片、朗读
+- [ ] 向量检索 + GraphRAG / LightRAG（待后续）
+- [ ] Neo4j/Kùzu 图数据库后端（待后续）
 
-## v0.5（智能体与交互）
+## v0.5（现代机制 + 审稿/安全智能体）
 
+- [ ] TCMSP / HERB / ETCM / SymMap / GEO / KEGG 真实现代机制接入（填充假设卡现代证据）
 - [ ] 反证审稿 Agent、安全审查 Agent（药典 2025 + 十八反十九畏硬约束）
 - [ ] 论文/课题草案生成
-- [ ] 语音交互（FireRedASR2S + CosyVoice 3）
-- [ ] Web「研究驾驶舱」前端（Next.js + ECharts + Cytoscape.js）
 
 ## 病种扩展顺序
 
