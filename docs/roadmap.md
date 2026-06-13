@@ -22,8 +22,16 @@
 - [x] 跨书同名方剂演变（历代著录）
 - [x] 含某味药的方剂检索；方剂组成纳入 BM25 与药对挖掘
 - [x] 「研究驾驶舱」Web 前端（六模块 + ECharts 可视化）
-- [ ] 君臣佐使推断（待 v0.3）
-- [ ] 剂量单位换算（古今，待 v0.3）
+
+## v0.3（君臣佐使 + 剂量换算 + 语音交互，已完成）
+
+- [x] 剂量古今换算（`formula_analysis/dosage.py`）：中文数字/单位解析，
+      朝代换算因子（漢/唐/宋/明/清/民国/现代），重量·容量·计数分治
+- [x] 君臣佐使推断（`formula_analysis/roles.py`）：剂量权重 + 方名命名 +
+      功能词典 + 位置，输出角色 / 依据 / 置信度（经典方验证一致）
+- [x] 语音交互（`voice/`）：FireRedASR2S（ASR）+ CosyVoice3（TTS）可插拔后端，
+      浏览器 Web Speech API 零依赖回退；前端 🎤 语音检索 + 🔊 朗读
+- [x] GPU 部署 notebook（`notebooks/HerbHermes_Voice_Server.ipynb`）
 
 ## v0.3（现代机制映射）
 

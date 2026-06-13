@@ -15,9 +15,9 @@ from pathlib import Path
 from typing import Optional
 
 try:
-    from fastapi import FastAPI, HTTPException, Query
+    from fastapi import FastAPI, HTTPException, Query, Request, Body
     from fastapi.staticfiles import StaticFiles
-    from fastapi.responses import FileResponse, RedirectResponse
+    from fastapi.responses import FileResponse, RedirectResponse, Response
     from fastapi.middleware.cors import CORSMiddleware
 except Exception as exc:  # pragma: no cover - import guard
     raise SystemExit(
@@ -119,8 +119,21 @@ def graph(name: str) -> dict:
 
 @app.get("/formula/{name}")
 def formula(name: str) -> dict:
-    """方剂谱系：组成、历代演变、源流、衍生方、加減、类方网络。"""
-    return get_kb().genealogy.genealogy(name)
+    """方剂谱系 + 君臣佐使 + 剂量古今换算。"""
+    kb = get_kb()
+    view = kb.genealogy.genealogy(name)
+    if view.get("found"):
+        view["analysis"] = kb.analyze_formula(name)
+    return view
+
+
+@app.get("/analyze/{name}")
+def analyze(name: str) -> dict:
+    """单独返回某方的君臣佐使与剂量折算。"""
+    res = get_kb().analyze_formula(name)
+    if res is None:
+        raise HTTPException(404, f"formula not found: {name}")
+    return res
 
 
 @app.get("/formulas")
@@ -144,6 +157,57 @@ def formulas(herb: str, limit: int = Query(50, ge=1, le=300)) -> dict:
 def report(name: str, disease: str = "骨质疏松") -> dict:
     md = herb_dossier_markdown(get_kb(), name, disease=disease)
     return {"name": name, "markdown": md}
+
+
+# ---- voice (语音交互) --------------------------------------------------
+@app.get("/voice/status")
+def voice_status_ep() -> dict:
+    from ..voice import voice_status
+    return voice_status()
+
+
+@app.post("/voice/asr")
+async def voice_asr(request: Request) -> dict:
+    """语音转文字 (FireRedASR2-AED)。请求体为原始音频字节（ffmpeg 会转码）。
+    未配置模型时返回 503，前端回退浏览器识别。"""
+    import tempfile
+    from ..voice import get_asr, VoiceUnavailable
+    try:
+        backend = get_asr()
+    except VoiceUnavailable as e:
+        raise HTTPException(503, str(e))
+    data = await request.body()
+    if not data:
+        raise HTTPException(400, "empty audio body")
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".bin") as tmp:
+        tmp.write(data)
+        tmp_path = tmp.name
+    try:
+        return backend.transcribe(tmp_path)
+    finally:
+        Path(tmp_path).unlink(missing_ok=True)
+
+
+@app.post("/voice/tts")
+def voice_tts(payload: dict = Body(...)):
+    """文字转语音 (CosyVoice3)。未配置模型时返回 503，前端回退浏览器朗读。"""
+    from ..voice import get_tts, VoiceUnavailable
+    import os
+    text = (payload or {}).get("text", "").strip()
+    if not text:
+        raise HTTPException(400, "text is required")
+    prompt_wav = (payload or {}).get("prompt_wav") or os.environ.get("HERB_HERMES_TTS_PROMPT_WAV")
+    if not prompt_wav:
+        raise HTTPException(503, "未配置参考音频 HERB_HERMES_TTS_PROMPT_WAV")
+    try:
+        backend = get_tts()
+        wav = backend.synthesize(
+            text, prompt_wav,
+            prompt_text=(payload or {}).get("prompt_text", ""),
+            instruct=(payload or {}).get("instruct", ""))
+    except VoiceUnavailable as e:
+        raise HTTPException(503, str(e))
+    return Response(content=wav, media_type="audio/wav")
 
 
 # ---- static frontend ("研究驾驶舱") ------------------------------------

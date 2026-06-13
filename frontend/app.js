@@ -242,6 +242,10 @@ VIEWS.formula = async function (name) {
       ${p.preparation ? `<div class="field"><div class="k">煎服</div><div class="v">${esc(p.preparation)}</div></div>` : ''}
     </div>`));
 
+    if (g.analysis && g.analysis.composition && g.analysis.composition.length) {
+      body.appendChild(renderAnalysis(g.analysis));
+    }
+
     body.appendChild(el(`<div class="grid g-side">
       <div class="card"><h3><span class="dot"></span>方剂谱系树（源流 → 本方 → 衍生）</h3><div id="fm-tree" class="chart tall"></div></div>
       <div class="card"><h3><span class="dot"></span>类方网络（组成相似度 Jaccard）</h3><div id="fm-sim" class="chart tall"></div></div>
@@ -257,6 +261,42 @@ VIEWS.formula = async function (name) {
     renderDerivations($('#fm-deriv'), g);
   } catch (e) { body.innerHTML = `<div class="empty">加载失败：${esc(e.message)}</div>`; }
 };
+
+const ROLE_COLOR = { '君': '#d9b25f', '臣': '#6fcf97', '佐': '#7fb6d9', '使': '#b08fd9' };
+const ROLE_DESC = { '君': '君药·主病主证', '臣': '臣药·辅助君药', '佐': '佐药·佐助佐制', '使': '使药·引经调和' };
+
+function renderAnalysis(a) {
+  const wrap = el(`<div class="card" style="margin-bottom:18px">
+    <div class="flex between center"><h3 style="margin:0"><span class="dot" style="background:var(--gold)"></span>君臣佐使 · 剂量古今换算</h3>
+    <span class="muted sm">据${esc(a.dynasty)}制 1兩≈${a.liang_grams}g · 全方≈${a.total_grams ?? '—'}g</span></div>
+    <div id="an-bars" class="chart short" style="height:200px"></div>
+    <table class="tbl" style="margin-top:8px"><thead><tr><th>角色</th><th>药味</th><th>原剂量</th><th>今约</th><th>依据</th></tr></thead><tbody></tbody></table>
+    <div class="disclaimer">${esc(a.note)}</div></div>`);
+  const tb = wrap.querySelector('tbody');
+  a.composition.forEach(it => {
+    const g = it.grams != null ? it.grams + ' g' : (it.count_unit ? it.value + it.count_unit : '—');
+    tb.appendChild(el(`<tr>
+      <td><span class="badge" style="background:${ROLE_COLOR[it.role]}22;color:${ROLE_COLOR[it.role]};border:1px solid ${ROLE_COLOR[it.role]}55">${it.role}</span></td>
+      <td class="nm" onclick="go('sourcing','${esc(it.herb)}')">${esc(it.herb)}</td>
+      <td class="sm muted">${esc(it.dose_raw || '—')}</td>
+      <td class="pmi">${esc(g)}</td>
+      <td class="sm muted">${esc(it.reason)}</td></tr>`));
+  });
+  setTimeout(() => {
+    const dosed = a.composition.filter(it => it.grams != null);
+    if (!dosed.length) return;
+    const ch = mkChart(wrap.querySelector('#an-bars'));
+    ch.setOption({
+      grid: { left: 60, right: 24, top: 12, bottom: 24 },
+      tooltip: { trigger: 'axis', backgroundColor: COL.panel, borderColor: COL.line, textStyle: { color: COL.ink }, formatter: p => `${p[0].name}（${ROLE_DESC[dosed[p[0].dataIndex].role]}）<br/>≈ ${p[0].value} g` },
+      xAxis: { type: 'category', data: dosed.map(d => d.herb), axisLabel: { color: COL.celadon, interval: 0, fontSize: 11 }, axisLine: { lineStyle: { color: COL.line } } },
+      yAxis: { type: 'value', name: 'g', axisLabel: { color: COL.muted }, splitLine: { lineStyle: { color: COL.line } } },
+      series: [{ type: 'bar', data: dosed.map(d => ({ value: d.grams, itemStyle: { color: ROLE_COLOR[d.role], borderRadius: [5, 5, 0, 0] } })), barWidth: '50%',
+        label: { show: true, position: 'top', color: COL.muted, fontSize: 10, formatter: p => dosed[p.dataIndex].role } }]
+    });
+  }, 0);
+  return wrap;
+}
 
 function renderGenealogyTree(node, g) {
   // ancestors (outermost first) -> name -> descendants
@@ -437,7 +477,7 @@ function renderHypCard(body, card) {
   body.appendChild(el(`<div class="grid g-side">
     <div class="card">
       <div class="flex between center"><span class="hyp-id">${esc(card.hypothesis_id)}</span><span class="badge b">证据等级 ${esc(card.evidence_score)}</span></div>
-      <div class="hyp-q">${esc(card.research_question)}</div>
+      <div class="hyp-q">${esc(card.research_question)} <span class="speak" onclick="speak('${esc(card.research_question)}')">🔊 朗读</span></div>
       <div class="sec-label">古籍证据（语料实证）</div><ul class="list">${list(card.classical_evidence)}</ul>
       <div class="sec-label">现代证据（待外部数据接入）</div><ul class="list">${list(card.modern_evidence)}</ul>
     </div>
@@ -457,5 +497,77 @@ function renderHypCard(body, card) {
   body.appendChild(el(`<div class="disclaimer">⚠ 现代机制为模板化候选假设，须经网络药理学、GEO 差异表达、单细胞定位与实验验证；本卡不构成临床处方建议。</div>`));
 }
 
+/* ----------------------------- Voice ------------------------------ */
+const Voice = {
+  serverASR: false, serverTTS: false, recognizing: false, rec: null, mediaRec: null, chunks: [],
+  async init() {
+    try {
+      const s = await api('/voice/status');
+      this.serverASR = s.asr && s.asr.configured;
+      this.serverTTS = s.tts && s.tts.configured && s.tts.has_default_prompt;
+    } catch (e) { /* offline: browser only */ }
+  },
+  dispatch(text) {
+    const q = (text || '').trim().replace(/[。.\s]+$/, '');
+    if (!q) return;
+    $('#globalSearch').value = q;
+    if (isFormulaName(q)) go('formula', q); else go('sourcing', q);
+    toast('🎤 ' + q);
+  },
+  async toggleMic() {
+    const btn = $('#micBtn');
+    if (this.recognizing) { this.stop(); return; }
+    if (this.serverASR && navigator.mediaDevices) { return this.recordServer(btn); }
+    return this.browserASR(btn);
+  },
+  browserASR(btn) {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { toast('当前浏览器不支持语音识别，且服务端 ASR 未配置'); return; }
+    const rec = new SR(); this.rec = rec;
+    rec.lang = 'zh-CN'; rec.interimResults = false; rec.maxAlternatives = 1;
+    rec.onstart = () => { this.recognizing = true; btn.classList.add('rec'); };
+    rec.onerror = () => toast('识别失败，请重试');
+    rec.onend = () => { this.recognizing = false; btn.classList.remove('rec'); };
+    rec.onresult = (e) => this.dispatch(e.results[0][0].transcript);
+    rec.start();
+  },
+  async recordServer(btn) {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    this.mediaRec = new MediaRecorder(stream); this.chunks = [];
+    this.mediaRec.ondataavailable = (e) => this.chunks.push(e.data);
+    this.mediaRec.onstop = async () => {
+      stream.getTracks().forEach(t => t.stop());
+      const blob = new Blob(this.chunks, { type: 'audio/webm' });
+      try {
+        const r = await fetch(API + '/voice/asr', { method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body: blob });
+        if (!r.ok) throw new Error('server ASR ' + r.status);
+        const d = await r.json(); this.dispatch(d.text);
+      } catch (e) { toast('服务端识别失败，回退浏览器'); this.browserASR(btn); }
+    };
+    this.recognizing = true; btn.classList.add('rec'); this.mediaRec.start();
+  },
+  stop() {
+    this.recognizing = false; $('#micBtn').classList.remove('rec');
+    if (this.rec) try { this.rec.stop(); } catch (e) {}
+    if (this.mediaRec && this.mediaRec.state !== 'inactive') this.mediaRec.stop();
+  },
+  async speak(text) {
+    if (!text) return;
+    if (this.serverTTS) {
+      try {
+        const r = await fetch(API + '/voice/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) });
+        if (r.ok) { new Audio(URL.createObjectURL(await r.blob())).play(); return; }
+      } catch (e) { /* fall back */ }
+    }
+    if (window.speechSynthesis) {
+      const u = new SpeechSynthesisUtterance(text); u.lang = 'zh-CN'; u.rate = 0.95;
+      speechSynthesis.cancel(); speechSynthesis.speak(u);
+    } else { toast('当前环境不支持朗读'); }
+  }
+};
+window.speak = (t) => Voice.speak(t);
+$('#micBtn').addEventListener('click', () => Voice.toggleMic());
+
 /* ----------------------------- Boot ------------------------------- */
+Voice.init();
 go('overview');

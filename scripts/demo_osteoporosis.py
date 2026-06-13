@@ -50,7 +50,15 @@ def main() -> int:
         print(f"   历代著录: {len(g['occurrences'])} 部书")
         print(f"   衍生方: {'、'.join(d['name'] for d in g['descendants'][:8])}")
 
-    print("\n## 6. 自动科研假设卡")
+    print("\n## 6. 君臣佐使 + 剂量古今换算（桂枝湯）")
+    a = kb.analyze_formula("桂枝湯")
+    if a:
+        print(f"   折算据{a['dynasty']}制 1兩≈{a['liang_grams']}g，全方≈{a['total_grams']}g")
+        for it in a["composition"]:
+            g = f"{it['grams']}g" if it.get("grams") is not None else (it.get("count_unit") or "—")
+            print(f"   [{it['role']}] {it['herb']}　≈{g}　（{it['reason']}）")
+
+    print("\n## 7. 自动科研假设卡")
     card = build_hypothesis_card(kb, "黃芪", partner="當歸", disease="骨质疏松")
     print(f"   {card.hypothesis_id}: {card.research_question}")
     print(f"   证据等级: {card.evidence_score}")

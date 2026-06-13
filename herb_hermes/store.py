@@ -145,6 +145,23 @@ class KnowledgeBase:
         hits = [p for p in self.pairs if canonical in (p.herb_a, p.herb_b)]
         return hits[:top_k]
 
+    def analyze_formula(self, name: str) -> Optional[Dict]:
+        """剂量古今换算 + 君臣佐使推断.
+
+        Among the formula's book copies, analyze each and keep the version that
+        yields the richest dosing (most herbs with convertible grams, then most
+        herbs), so a dose-bearing copy is preferred over a terse one.
+        """
+        from .formula_analysis.analyzer import analyze_formula
+        kin = self.genealogy.representative_group(name)
+        if not kin:
+            return None
+        analyses = [analyze_formula(f, self.normalizer) for f in kin]
+        best = max(analyses, key=lambda a: (
+            sum(1 for it in a.composition if it.get("grams") is not None),
+            len(a.composition)))
+        return best.to_dict()
+
     @property
     def stats(self) -> Dict[str, int]:
         return {

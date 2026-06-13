@@ -143,6 +143,14 @@ def cmd_formula(args) -> int:
     if g["similar"]:
         print("  类方（组成相似）：" + "、".join(f"{s['name']}({s['jaccard']})"
                                                 for s in g["similar"][:8]))
+    a = kb.analyze_formula(args.name)
+    if a and a["composition"]:
+        print(f"  君臣佐使 + 剂量折算（{a['dynasty']}制，1兩≈{a['liang_grams']}g，"
+              f"合计≈{a['total_grams']}g）：")
+        for it in a["composition"]:
+            g_ = f"{it['grams']}g" if it.get("grams") is not None else (it.get("count_unit") or "—")
+            print(f"    [{it['role']}] {it['herb']}　{it.get('dose_raw','') or ''}　≈{g_}　（{it['reason']}）")
+        print(f"    註：{a['note']}")
     return 0
 
 

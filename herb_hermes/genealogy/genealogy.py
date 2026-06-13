@@ -4,17 +4,32 @@ composition similarity (类方网络), plus cross-book 演变 of same-named form
 
 from __future__ import annotations
 
+import re
 from collections import defaultdict
 from typing import Dict, List, Optional, Tuple
 
 from ..models import Formula
 
-# Herbs in more than this many formulas are too common to drive similarity
-# candidate generation (e.g. 甘草, 生薑); skipped only for candidate lookup.
-_COMMON_HERB_DF = 400
+# Candidate generation seeds from each formula's rarest herbs (most
+# discriminative), so even formulas built from common herbs find their 类方.
+_SIM_SEED_HERBS = 3           # how many rarest herbs to seed candidates from
+_SIM_SEED_DF_CAP = 3000       # skip a seed scanning more than this many formulas
 _SIM_TOP_K = 8
-_SIM_MIN_JACCARD = 0.34
-_SIM_MIN_SHARED = 2
+_SIM_MIN_JACCARD = 0.5
+_SIM_MIN_SHARED = 3
+
+# Reject mis-detected "formulas" (chapter headings, descriptive/symptom titles).
+_BAD_NAME = re.compile(r"[第卷論]|療法|应用|應用|諸方|治法|雜|方論|歌|訣")
+# Canonical formulas are named after a dosage form; require such a suffix so
+# symptom-titled entries (白帶/自汗) don't pollute the 类方 network.
+_FORM_SUFFIX = re.compile(r"(湯|散|丸|飲|膏|丹|煎|錠|餅|酒|茶|圓|飲子)$")
+
+
+def _formula_like(name: str) -> bool:
+    n = _norm_name(name)
+    if not (2 <= len(n) <= 9) or _BAD_NAME.search(n):
+        return False
+    return bool(_FORM_SUFFIX.search(n))
 
 
 _STRIP_CHARS = " 　【】（）()「」『』《》〔〕[]"
@@ -49,11 +64,13 @@ class FormulaGenealogy:
 
         for f in self.formulas:
             fs = set(f.composition_herbs)
-            if len(fs) < 2:
+            if len(fs) < 3 or not _formula_like(f.name):
                 continue
             cand_counts: Dict[str, int] = defaultdict(int)
-            for h in fs:
-                if df.get(h, 0) > _COMMON_HERB_DF:
+            # seed from the rarest (most discriminative) herbs of this formula
+            seeds = sorted(fs, key=lambda h: df.get(h, 0))[:_SIM_SEED_HERBS]
+            for h in seeds:
+                if df.get(h, 0) > _SIM_SEED_DF_CAP:
                     continue
                 for oid in herb_index[h]:
                     if oid != f.formula_id:
@@ -62,7 +79,10 @@ class FormulaGenealogy:
             for oid, shared in cand_counts.items():
                 if shared < _SIM_MIN_SHARED:
                     continue
-                os_ = set(self.by_id[oid].composition_herbs)
+                other = self.by_id[oid]
+                if not _formula_like(other.name) or _norm_name(other.name) == _norm_name(f.name):
+                    continue
+                os_ = set(other.composition_herbs)
                 union = len(fs | os_)
                 jac = len(fs & os_) / union if union else 0.0
                 if jac >= _SIM_MIN_JACCARD:
@@ -115,6 +135,23 @@ class FormulaGenealogy:
                 if frozenset(f.composition_herbs) == best_sig:
                     return f
         return max(copies, key=lambda f: len(f.composition_herbs))
+
+    def representative_formula(self, name: str):
+        """The representative :class:`Formula` object for a name (or None)."""
+        copies = self.lookup(name)
+        return self._representative(copies) if copies else None
+
+    def representative_group(self, name: str) -> List[Formula]:
+        """Copies sharing the representative (modal) composition — same formula,
+        different book editions. Used to find a dose-bearing edition without
+        drifting onto an unrelated same-named variant."""
+        copies = self.lookup(name)
+        if not copies:
+            return []
+        rep = self._representative(copies)
+        sig = frozenset(rep.composition_herbs)
+        kin = [f for f in copies if frozenset(f.composition_herbs) == sig]
+        return kin or [rep]
 
     def genealogy(self, name: str) -> Dict:
         """Full genealogy view for a formula name (across all its book copies)."""

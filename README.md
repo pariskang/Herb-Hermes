@@ -1,10 +1,11 @@
-# Herb-Hermes 本草—方剂—机制—发现 证据操作系统 (MVP v0.2)
+# Herb-Hermes 本草—方剂—机制—发现 证据操作系统 (MVP v0.3)
 
 Herb-Hermes 是面向中医药经典本草与方剂演变的科学发现系统。本仓库实现了设计
 草案的**可运行闭环**：从古籍原文出发，完成本草结构化、药名归一与名物考订、
-本草溯源、**方剂谱系重建**、引文可溯检索、知识图谱构建、药对共现挖掘，自动
-生成**引文落地的科研假设卡**，并提供一个**「研究驾驶舱」Web 前端**将全部功能
-可视化。
+本草溯源、**方剂谱系重建**、**君臣佐使推断**、**剂量古今换算**、引文可溯检索、
+知识图谱构建、药对共现挖掘，自动生成**引文落地的科研假设卡**，提供**「研究驾驶舱」
+Web 前端**将全部功能可视化，并支持**语音交互**（FireRedASR2S / CosyVoice3，
+GPU 部署，浏览器零依赖回退）。
 
 > MVP 主题切入：**补益类本草 + 骨质疏松 / 骨伤修复**（与设计草案第九节一致）。
 
@@ -48,7 +49,7 @@ uvicorn herb_hermes.api.server:app --port 8000
 python -m herb_hermes.cli stats
 python -m herb_hermes.cli herb 黃芪                  # 单味药结构化条目
 python -m herb_hermes.cli trace 當歸                 # 本草溯源（跨书跨代时间线）
-python -m herb_hermes.cli formula 桂枝湯             # 方剂谱系（源流/衍生/类方/加減）
+python -m herb_hermes.cli formula 桂枝湯             # 方剂谱系 + 君臣佐使 + 剂量古今换算
 python -m herb_hermes.cli formulas-with 杜仲         # 含某味药的方剂
 python -m herb_hermes.cli search 強筋骨 補肝腎        # 引文可溯的全文检索 (BM25)
 python -m herb_hermes.cli pairs --herb 黃芪           # 药对共现挖掘
@@ -82,7 +83,10 @@ python scripts/demo_osteoporosis.py
 | 检索层 (BM25 + 引文) | `retrieval/`：古文友好的字/双字分词 + 纯 Python BM25，覆盖本草与方書，命中即带《书·篇（朝代·作者）》引文 |
 | 知识图谱层 | `kg/graph.py`：herb / 歸經 / 性味 / 功效 节点 + 配伍边，导出 node-link JSON 与 DOT |
 | 配伍规律发现 (药对) | `discovery/cooccurrence.py`：配伍字段 + 段落共现，PMI 评分 |
+| **君臣佐使推断** | `formula_analysis/roles.py`：综合剂量权重、方名命名、功能词典、位置，推断君/臣/佐/使并给依据与置信度 |
+| **剂量古今换算** | `formula_analysis/dosage.py`：解析古代剂量（兩/錢/分/銖/升/枚…），按朝代因子折算现代克数 |
 | 科研假设 Agent | `discovery/hypothesis.py`：模板化、引文落地的 Hypothesis Card（现代机制明确标注为「待验证假设」） |
+| **语音交互 Agent** | `voice/`：FireRedASR2S（ASR）+ CosyVoice3（TTS）可插拔后端，浏览器 Web Speech API 零依赖回退 |
 | 安全红线 | 假设卡与报告均声明「现代机制为待验证假设，不构成临床处方建议」 |
 | 应用层 | `cli.py`、`api/server.py`、`report.py`（一键报告） |
 
@@ -120,17 +124,20 @@ herb_hermes/
   retrieval/     古文分词 + BM25（带引文）
   kg/            知识图谱构建与查询
   genealogy/     方剂谱系：源流/衍生/类方/演变
+  formula_analysis/ 君臣佐使推断 + 剂量古今换算
+  voice/         语音交互：FireRedASR2S (ASR) + CosyVoice3 (TTS) 可插拔后端
   discovery/     溯源 / 药对 / 假设卡
   store.py       KnowledgeBase：构建·持久化·查询的中枢
   index_build.py 构建知识库入口
   report.py      Markdown 报告导出
   cli.py         命令行界面
-  api/server.py  FastAPI 层（含前端托管）
-frontend/        研究驾驶舱（index.html + styles.css + app.js，ECharts）
+  api/server.py  FastAPI 层（含前端托管 + 语音端点）
+frontend/        研究驾驶舱（index.html + styles.css + app.js，ECharts + 语音）
+notebooks/       语音服务 GPU 部署 notebook
 data/raw/本草/   本草语料底座
 data/raw/方書/   方書语料底座
 scripts/         端到端 Demo
-tests/           pytest 测试（29 项）
+tests/           pytest 测试（43 项）
 docs/            设计与路线说明
 ```
 
