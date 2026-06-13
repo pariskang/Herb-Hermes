@@ -45,10 +45,55 @@
           <span class="hint">Enter</span>
         </div>
         <button class="mic" id="micBtn" title="语音输入（FireRedASR2S / 浏览器识别）">🎤</button>
+        <button class="icon-btn" id="settingsBtn" title="模型配置">⚙</button>
         <div class="ttl" id="topTitle">本草—方剂—机制—发现 证据操作系统</div>
       </div>
       <div id="content"></div>
     </main>
+  </div>
+
+  <!-- Settings Panel (fixed overlay) -->
+  <div id="settings-panel" class="settings-overlay">
+    <div class="settings-card">
+      <div class="settings-head">
+        <h3><span class="dot"></span>模型配置</h3>
+        <button class="icon-btn" id="closeSettings">✕</button>
+      </div>
+      <div class="settings-body">
+        <div class="set-group">
+          <label>Provider</label>
+          <select id="set-provider">
+            <option value="minimax">MiniMax（推荐·国内访问）</option>
+            <option value="openai">OpenAI</option>
+            <option value="anthropic">Anthropic / Claude</option>
+            <option value="ollama">Ollama（本地）</option>
+            <option value="custom">自定义</option>
+          </select>
+        </div>
+        <div class="set-group">
+          <label>模型</label>
+          <select id="set-model"></select>
+          <span class="set-reasoning-badge" id="set-reasoning-badge" style="display:none">✦ 带思考</span>
+        </div>
+        <div class="set-group">
+          <label>API Key</label>
+          <input id="set-apikey" type="password" placeholder="sk-..." autocomplete="off" />
+        </div>
+        <div class="set-group" id="set-apibase-group">
+          <label>API Base URL</label>
+          <input id="set-apibase" placeholder="https://api.minimaxi.com/v1" />
+        </div>
+        <div class="set-group set-tip" id="set-tip">
+          <p>MiniMax 提示：<br>• 官网申请 API Key：<code>api.minimaxi.com</code><br>• 本系统自动为 MiniMax 启用 <code>reasoning_split=True</code>，在智能问答中实时显示「思考过程」。</p>
+        </div>
+        <div class="set-actions">
+          <button class="btn" id="set-apply">应用设置</button>
+          <button class="btn ghost" id="set-clear">清除</button>
+          <span id="set-status" class="muted sm"></span>
+        </div>
+        <div class="disclaimer">API Key 仅存储于浏览器 localStorage，每次请求直接转发至 Provider，不经过 Herb-Hermes 服务端记录。</div>
+      </div>
+    </div>
   </div>
 
   <div class="toast" id="toast"></div>

@@ -65,11 +65,14 @@ def _collect_citations(steps: List[AgentStep]) -> List[str]:
 
 
 class HerbAgent:
-    def __init__(self, kb, llm, max_steps: int = 6) -> None:
+    def __init__(self, kb, llm, max_steps: int = 6,
+                 on_step=None, on_thinking=None) -> None:
         self.kb = kb
         self.llm = llm
         self.registry = ToolRegistry(kb)
         self.max_steps = max_steps
+        self.on_step = on_step          # callable(AgentStep) — called after each tool
+        self.on_thinking = on_thinking  # callable(str) — called with thinking text
 
     def ask(self, question: str, history: Optional[List[Dict]] = None) -> AgentResult:
         messages: List[Dict[str, Any]] = [{"role": "system", "content": SYSTEM_PROMPT}]
@@ -80,11 +83,22 @@ class HerbAgent:
         answer = ""
         for _ in range(self.max_steps):
             resp: LLMResponse = self.llm.complete(messages, tools=self.registry.specs)
+            if resp.thinking and self.on_thinking:
+                try:
+                    self.on_thinking(resp.thinking)
+                except Exception:
+                    pass
             if resp.tool_calls:
                 messages.append(resp.assistant_message())
                 for tc in resp.tool_calls:
                     result = self.registry.dispatch(tc.name, tc.arguments)
-                    steps.append(AgentStep(tc.name, tc.arguments, result))
+                    step = AgentStep(tc.name, tc.arguments, result)
+                    steps.append(step)
+                    if self.on_step:
+                        try:
+                            self.on_step(step)
+                        except Exception:
+                            pass
                     messages.append({
                         "role": "tool", "tool_call_id": tc.id, "name": tc.name,
                         "content": json.dumps(result, ensure_ascii=False),

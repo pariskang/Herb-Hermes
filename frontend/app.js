@@ -14,8 +14,8 @@ const COL = {
 };
 const PALETTE = ['#6fcf97', '#d9b25f', '#7fb6d9', '#d98a6a', '#b08fd9', '#cf9f6f', '#79c7b0', '#c98aa6'];
 
-async function api(path) {
-  const r = await fetch(API + path);
+async function api(path, opts) {
+  const r = await fetch(API + path, opts);
   if (!r.ok) throw new Error('HTTP ' + r.status);
   return r.json();
 }
@@ -29,7 +29,147 @@ window.addEventListener('resize', () => charts.forEach(c => c.resize()));
 
 const isFormulaName = (s) => /[湯散丸飲膏丹湯飲子煎]$/.test(s.trim()) || /[汤散丸饮膏]$/.test(s.trim());
 
-/* ----------------------------- Router ----------------------------- */
+/* ========================= Settings ========================= */
+const Settings = {
+  K: { MODEL: 'hh_model', KEY: 'hh_apikey', BASE: 'hh_apibase', PROV: 'hh_prov' },
+  get() {
+    return {
+      model:    localStorage.getItem(this.K.MODEL) || '',
+      apiKey:   localStorage.getItem(this.K.KEY)   || '',
+      apiBase:  localStorage.getItem(this.K.BASE)  || '',
+      provider: localStorage.getItem(this.K.PROV)  || '',
+    };
+  },
+  set(d) {
+    const set = (k, v) => v ? localStorage.setItem(k, v) : localStorage.removeItem(k);
+    set(this.K.MODEL, d.model);
+    set(this.K.KEY,   d.apiKey);
+    set(this.K.BASE,  d.apiBase);
+    set(this.K.PROV,  d.provider);
+  },
+  clear() { Object.values(this.K).forEach(k => localStorage.removeItem(k)); },
+  /** Build the extra payload fields for /agent/ask and /agent/stream */
+  agentPayload(base = {}) {
+    const s = this.get();
+    const p = Object.assign({}, base);
+    if (s.model)  p.model   = s.model;
+    if (s.apiKey) p.api_key = s.apiKey;
+    if (s.apiBase) p.api_base = s.apiBase;
+    return p;
+  },
+  hasLocal() { const s = this.get(); return !!(s.model || s.apiKey); },
+};
+
+/* ========================= Settings Panel ========================= */
+let _modelsCache = null;
+async function _fetchModels() {
+  if (_modelsCache) return _modelsCache;
+  try { _modelsCache = await api('/llm/models'); } catch (e) { _modelsCache = null; }
+  return _modelsCache;
+}
+
+const FALLBACK_MODELS = {
+  minimax:   ['MiniMax-M3','MiniMax-M2.7','MiniMax-M2.7-highspeed','MiniMax-M2.5','MiniMax-M2.5-highspeed','MiniMax-M2.1','MiniMax-M2.1-highspeed','MiniMax-M2'],
+  openai:    ['gpt-4o-mini','gpt-4o','o3','o4-mini'],
+  anthropic: ['claude-sonnet-4-6','claude-opus-4-8','claude-fable-5','claude-haiku-4-5-20251001'],
+  ollama:    ['ollama/qwen2.5','ollama/llama3.2','ollama/deepseek-r1'],
+  custom:    [],
+};
+const MINIMAX_REASONING = new Set(['MiniMax-M3','MiniMax-M2.7','MiniMax-M2.7-highspeed','MiniMax-M2.5','MiniMax-M2.5-highspeed','MiniMax-M2.1','MiniMax-M2.1-highspeed','MiniMax-M2']);
+
+function _providerModels(prov, data) {
+  if (!data) return (FALLBACK_MODELS[prov] || []).map(id => ({ id: prov === 'minimax' ? 'minimax/'+id : id, label: id, reasoning: MINIMAX_REASONING.has(id) }));
+  const match = data.providers.find(p => p.name.toLowerCase().replace(/\s.*/, '') === prov) || data.providers[0];
+  return match ? match.models : [];
+}
+
+async function openSettings() {
+  $('#settings-panel').classList.add('open');
+  const models = await _fetchModels();
+  const s = Settings.get();
+  const prov = s.provider || 'minimax';
+  $('#set-provider').value = prov;
+  if (s.apiKey)  $('#set-apikey').value  = s.apiKey;
+  if (s.apiBase) $('#set-apibase').value = s.apiBase;
+  _updateModelSelect(prov, s.model, models);
+  _updateProviderHints(prov);
+}
+window.openSettings = openSettings;
+
+function closeSettings() { $('#settings-panel').classList.remove('open'); }
+
+function _updateModelSelect(prov, selected, data) {
+  const sel = $('#set-model');
+  sel.innerHTML = '';
+  _providerModels(prov, data).forEach(m => {
+    const o = document.createElement('option');
+    o.value = m.id;
+    o.textContent = m.label + (m.context ? ' ('+m.context+')' : '') + (m.reasoning ? ' ✦' : '');
+    sel.appendChild(o);
+  });
+  if (selected) sel.value = selected;
+  _updateReasoningBadge(sel.value);
+}
+
+function _updateReasoningBadge(modelId) {
+  const bare = (modelId || '').split('/').pop();
+  const hasReason = MINIMAX_REASONING.has(bare) ||
+    ['o3','o4-mini','claude-fable-5','claude-opus-4-8','deepseek-r1'].some(m => bare.includes(m));
+  const badge = $('#set-reasoning-badge');
+  if (badge) badge.style.display = hasReason ? '' : 'none';
+}
+
+function _updateProviderHints(prov) {
+  const tip = $('#set-tip');
+  const baseGrp = $('#set-apibase-group');
+  const baseIn = $('#set-apibase');
+  const TIPS = {
+    minimax: 'MiniMax 提示：官网申请 Key：<code>api.minimaxi.com</code> · 本系统自动启用 <code>reasoning_split=True</code>，在智能问答中实时显示「思考过程」。',
+    openai: 'OpenAI Key 以 <code>sk-</code> 开头。',
+    anthropic: 'Anthropic Key 以 <code>sk-ant-</code> 开头。',
+    ollama: 'Ollama 无需 Key，确保本地服务已启动（默认 <code>http://localhost:11434</code>）。',
+    custom: '填写兼容 OpenAI API 格式的自定义端点，如 vLLM、LM Studio 等。',
+  };
+  if (tip) tip.innerHTML = `<p>${TIPS[prov] || ''}</p>`;
+  const showBase = ['minimax','ollama','custom'].includes(prov);
+  if (baseGrp) baseGrp.style.display = showBase ? '' : 'none';
+  if (baseIn && !baseIn.value) {
+    if (prov === 'minimax') baseIn.value = 'https://api.minimaxi.com/v1';
+    else if (prov === 'ollama') baseIn.value = 'http://localhost:11434';
+  }
+  // Clear base hint for OpenAI/Anthropic
+  if (!showBase && baseIn) baseIn.value = '';
+}
+
+$('#set-provider').addEventListener('change', async function() {
+  const models = await _fetchModels();
+  _updateModelSelect(this.value, '', models);
+  _updateProviderHints(this.value);
+});
+$('#set-model').addEventListener('change', function() { _updateReasoningBadge(this.value); });
+$('#set-apply').addEventListener('click', () => {
+  const s = {
+    provider: $('#set-provider').value,
+    model:    $('#set-model').value,
+    apiKey:   $('#set-apikey').value.trim(),
+    apiBase:  $('#set-apibase').value.trim(),
+  };
+  Settings.set(s);
+  closeSettings();
+  toast('已保存：' + (s.model || '(auto)'));
+  _refreshAgentStatus();
+});
+$('#set-clear').addEventListener('click', () => {
+  Settings.clear();
+  ['#set-apikey','#set-apibase'].forEach(sel => { if ($(sel)) $(sel).value = ''; });
+  toast('已清除模型配置');
+  _refreshAgentStatus();
+});
+$('#closeSettings').addEventListener('click', closeSettings);
+$('#settings-panel').addEventListener('click', function(e) { if (e.target === this) closeSettings(); });
+$('#settingsBtn').addEventListener('click', openSettings);
+
+/* ========================= Router ========================= */
 const VIEWS = {};
 let CURRENT = 'overview';
 function go(view, arg) {
@@ -49,7 +189,7 @@ $('#globalSearch').addEventListener('keydown', (e) => {
   else go('sourcing', q);
 });
 
-/* --------------------------- Overview ----------------------------- */
+/* ========================= Overview ========================= */
 VIEWS.overview = async function () {
   const c = $('#content');
   c.appendChild(el(`<div class="view">
@@ -80,11 +220,11 @@ VIEWS.overview = async function () {
       ['结构化单味药', s.herb_entries, '条'],
       ['方剂记录', s.formula_formulas, '首'],
       ['唯一方名', s.formula_unique_formula_names, '个'],
-      ['谱系/类方边', (s.formula_with_parent || 0) + (s.formula_similarity_edges || 0), '条']
+      ['谱系/类方边', (s.formula_with_parent || 0) + (s.formula_similarity_edges || 0), '条'],
     ];
     const g = $('#ov-stats');
-    cards.forEach(([lab, num, sub], i) => g.appendChild(el(
-      `<div class="card stat"><div class="num">${(num || 0).toLocaleString()}</div><div class="lab">${lab}</div><div class="sub">${sub}</div></div>`)));
+    cards.forEach(([lab, num]) => g.appendChild(el(
+      `<div class="card stat"><div class="num">${(num || 0).toLocaleString()}</div><div class="lab">${lab}</div></div>`)));
     const pairs = (await api('/pairs?limit=12')).pairs;
     renderPairsBar($('#ov-pairs'), pairs);
   } catch (e) { toast('加载失败：' + e.message); }
@@ -110,7 +250,7 @@ function renderPairsBar(node, pairs) {
   });
 }
 
-/* --------------------------- Sourcing ----------------------------- */
+/* ========================= Sourcing ========================= */
 VIEWS.sourcing = async function (herb) {
   herb = herb || '黃芪';
   const c = $('#content');
@@ -132,15 +272,17 @@ VIEWS.sourcing = async function (herb) {
   const body = $('#sc-body');
   body.appendChild(el(`<div class="empty"><span class="loader"></span> 检索语料中…</div>`));
   try {
-    const [trace, info] = await Promise.all([api('/trace/' + encodeURIComponent(herb) + '?limit=30'), api('/herb/' + encodeURIComponent(herb))]);
+    const [trace, info] = await Promise.all([
+      api('/trace/' + encodeURIComponent(herb) + '?limit=30'),
+      api('/herb/' + encodeURIComponent(herb)),
+    ]);
     body.innerHTML = '';
     if (trace.ambiguous) {
       body.appendChild(el(`<div class="card"><h3><span class="dot" style="background:var(--rust)"></span>名物歧义 · ${esc(trace.herb)}</h3>
         <p class="muted" style="line-height:1.9">${esc(trace.ambiguity_note)}</p>
-        <p class="sm" style="color:var(--gold-soft)">⚖ Herb-Hermes 对歧义名物不强行归一，需依朝代 / 主治 / 性味 / 配伍判断 —— 此为名物考订的专业壁垒。</p></div>`));
+        <p class="sm" style="color:var(--gold-soft)">⚖ Herb-Hermes 对歧义名物不强行归一，需依朝代 / 主治 / 性味 / 配伍判断。</p></div>`));
       return;
     }
-    // header card
     const ali = (trace.aliases || []).map(a => `<span class="chip muted">${esc(a)}</span>`).join('');
     body.appendChild(el(`<div class="card" style="margin-bottom:18px">
       <div class="flex between center"><h3 style="margin:0"><span class="dot"></span>${esc(trace.herb)}</h3>
@@ -208,7 +350,7 @@ function renderHerbGraph(node, center, neighbors) {
   ch.on('click', p => { if (p.dataType === 'node' && p.data.category === 'herb' && p.name !== center) go('sourcing', p.name); });
 }
 
-/* ---------------------------- Formula ----------------------------- */
+/* ========================= Formula ========================= */
 VIEWS.formula = async function (name) {
   name = name || '桂枝湯';
   const c = $('#content');
@@ -263,7 +405,7 @@ VIEWS.formula = async function (name) {
 };
 
 const ROLE_COLOR = { '君': '#d9b25f', '臣': '#6fcf97', '佐': '#7fb6d9', '使': '#b08fd9' };
-const ROLE_DESC = { '君': '君药·主病主证', '臣': '臣药·辅助君药', '佐': '佐药·佐助佐制', '使': '使药·引经调和' };
+const ROLE_DESC  = { '君': '君药·主病主证', '臣': '臣药·辅助君药', '佐': '佐药·佐助佐制', '使': '使药·引经调和' };
 
 function renderAnalysis(a) {
   const wrap = el(`<div class="card" style="margin-bottom:18px">
@@ -299,10 +441,8 @@ function renderAnalysis(a) {
 }
 
 function renderGenealogyTree(node, g) {
-  // ancestors (outermost first) -> name -> descendants
   const kids = (g.descendants || []).slice(0, 14).map(d => ({ name: d.name, value: (d.herbs || []).join('、'), itemStyle: { color: COL.celadon } }));
   let root = { name: g.name, value: (g.primary.composition_herbs || []).join('、'), itemStyle: { color: COL.jade }, label: { fontWeight: 'bold' }, children: kids };
-  // wrap ancestors as parents (nearest first in array)
   (g.ancestors || []).forEach(a => { root = { name: a.name, value: (a.herbs || []).join('、'), itemStyle: { color: COL.gold }, children: [root] }; });
   const ch = mkChart(node);
   ch.setOption({
@@ -321,7 +461,7 @@ function renderGenealogyTree(node, g) {
 
 function renderSimNetwork(node, g) {
   const sim = g.similar || [];
-  if (!sim.length) { node.parentElement.querySelector('.chart').innerHTML = ''; node.innerHTML = '<p class="empty">暂无组成相似的类方（该方含较多通用药，区分度低）。</p>'; node.className = ''; return; }
+  if (!sim.length) { node.innerHTML = '<p class="empty">暂无组成相似的类方。</p>'; node.className = ''; return; }
   const ch = mkChart(node);
   const nodes = [{ name: g.name, symbolSize: 44, itemStyle: { color: COL.jadeDeep }, label: { color: COL.ink, fontWeight: 'bold' }, fixed: true, x: 250, y: 200 }];
   const links = [];
@@ -360,7 +500,7 @@ function renderDerivations(node, g) {
   node.appendChild(ul);
 }
 
-/* ----------------------------- Pairs ------------------------------ */
+/* ========================= Pairs ========================= */
 VIEWS.pairs = async function (herb) {
   const c = $('#content');
   c.appendChild(el(`<div class="view">
@@ -405,7 +545,7 @@ function renderPairNet(node, pairs, focus) {
   ch.on('click', p => { if (p.dataType === 'node') go('sourcing', p.name); });
 }
 
-/* ----------------------------- Search ----------------------------- */
+/* ========================= Search ========================= */
 VIEWS.search = async function (q) {
   const c = $('#content');
   c.appendChild(el(`<div class="view">
@@ -425,14 +565,14 @@ VIEWS.search = async function (q) {
     body.innerHTML = '';
     if (!data.results.length) { body.appendChild(el('<div class="empty">无匹配结果</div>')); return; }
     const card = el('<div class="card"></div>');
-    card.appendChild(el(`<h3><span class="dot"></span>命中 ${data.results.length} 条 · “${esc(q)}”</h3>`));
+    card.appendChild(el(`<h3><span class="dot"></span>命中 ${data.results.length} 条 · "${esc(q)}"</h3>`));
     data.results.forEach(r => card.appendChild(el(
       `<div class="evi"><div class="cite">▪ ${esc(r.citation)}<span class="score">score ${r.score}</span></div><div class="txt">${esc(r.snippet)}</div></div>`)));
     body.appendChild(card);
   } catch (e) { body.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
 };
 
-/* --------------------------- Hypothesis --------------------------- */
+/* ========================= Hypothesis ========================= */
 VIEWS.hypothesis = async function () {
   const c = $('#content');
   c.appendChild(el(`<div class="view">
@@ -497,7 +637,7 @@ function renderHypCard(body, card) {
   body.appendChild(el(`<div class="disclaimer">⚠ 现代机制为模板化候选假设，须经网络药理学、GEO 差异表达、单细胞定位与实验验证；本卡不构成临床处方建议。</div>`));
 }
 
-/* ----------------------------- Agent ------------------------------ */
+/* ========================= Agent ========================= */
 const TOOL_LABEL = {
   search_corpus: '古籍检索', trace_herb: '本草溯源', herb_info: '结构化条目',
   herb_pairs: '药对挖掘', formula_genealogy: '方剂谱系', analyze_formula: '君臣佐使·剂量',
@@ -507,74 +647,183 @@ const TOOL_LABEL = {
 VIEWS.agent = async function () {
   const c = $('#content');
   c.appendChild(el(`<div class="view">
-    <div class="view-head"><h2>智能问答</h2><p>大模型自主调用接地工具，在真实古籍证据上推理作答（litellm 接入，每步可溯）</p></div>
+    <div class="view-head"><h2>智能问答</h2><p>大模型自主调用接地工具，在真实古籍证据上推理作答（每步可溯，引文落地）</p></div>
+    <div class="agent-toolbar">
+      <div id="ag-model-status"></div>
+      <button class="btn ghost" style="font-size:12.5px;padding:6px 14px" onclick="openSettings()">⚙ 模型配置</button>
+    </div>
     <div class="controls">
       <div class="ctrl" style="flex:1;max-width:640px"><label>提问</label>
-        <input id="ag-in" style="flex:1" placeholder="如：补肾强骨可用哪些本草？桂枝汤与小建中汤的关系？黄芪当归药对的科研价值？" /></div>
+        <input id="ag-in" style="flex:1" placeholder="如：补肾强骨可用哪些本草？桂枝汤的君臣佐使？黄芪当归药对科研价值？" /></div>
       <button class="btn" id="ag-go">提问</button>
     </div>
     <div class="tags" style="margin:-6px 0 14px">
-      <span class="chip" onclick="agAsk('杜仲的功效与历代著录？')">杜仲的功效与历代著录？</span>
-      <span class="chip gold" onclick="agAsk('桂枝汤的君臣佐使与衍生方？')">桂枝汤的君臣佐使与衍生方？</span>
-      <span class="chip" onclick="agAsk('补肾活血治疗骨质疏松的候选药对与科研假设？')">骨质疏松候选药对与假设？</span>
+      <span class="chip" onclick="agAsk('杜仲的功效与历代著录？')">杜仲历代著录</span>
+      <span class="chip gold" onclick="agAsk('桂枝汤的君臣佐使与衍生方？')">桂枝汤君臣佐使</span>
+      <span class="chip" onclick="agAsk('补肾活血治疗骨质疏松的候选药对与科研假设？')">骨质疏松候选药对</span>
+      <span class="chip" onclick="agAsk('六味地黄丸的类方网络与历代演变？')">六味地黄丸类方</span>
     </div>
     <div id="ag-body"></div></div>`));
   $('#topTitle').textContent = '智能问答 · Herb-Hermes Agent';
   $('#ag-go').addEventListener('click', () => agAsk($('#ag-in').value.trim()));
   $('#ag-in').addEventListener('keydown', e => { if (e.key === 'Enter') agAsk($('#ag-in').value.trim()); });
-  try {
-    const s = await api('/llm/status');
-    if (!s.configured) {
-      $('#ag-body').appendChild(el(`<div class="card"><h3><span class="dot" style="background:var(--rust)"></span>未接入大语言模型</h3>
-        <p class="muted" style="line-height:1.9">智能问答需要 litellm + 模型。请：<br>
-        <code style="color:var(--celadon)">pip install litellm</code>，并设置环境变量
-        <code style="color:var(--celadon)">HERB_HERMES_LLM_MODEL</code>（如 <code>gpt-4o-mini</code> / <code>claude-sonnet-4-6</code> / <code>ollama/qwen2.5</code>）及对应 API Key，重启服务即可。<br>
-        亦可通过 MCP 让 Claude Code / Codex 直接调用本系统工具：<code style="color:var(--celadon)">claude mcp add herb-hermes -- python -m herb_hermes.mcp_server</code></p>
-        <p class="sm muted">在此之前，可使用左侧「本草溯源 / 方剂谱系 / 药对配伍 / 科研假设」等规则化模块。</p></div>`));
-    }
-  } catch (e) { /* offline */ }
+  _refreshAgentStatus();
 };
 
-window.agAsk = function (q) { $('#ag-in').value = q; agAsk(q); };
-async function agAsk(q) {
-  q = (q || '').trim(); if (!q) return;
-  go('agent'); // reset view
-  setTimeout(async () => {
-    $('#ag-in').value = q;
-    const body = $('#ag-body'); body.innerHTML = '';
-    body.appendChild(el(`<div class="card"><div class="evi" style="border:none"><b style="color:var(--celadon)">问：</b>${esc(q)}</div>
-      <div id="ag-think" class="muted sm"><span class="loader"></span> 智能体推理中…</div></div>`));
-    try {
-      const r = await fetch(API + '/agent/ask', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: q }) });
-      if (r.status === 503) { body.innerHTML = ''; VIEWS.agent(); return; }
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      renderAgent(body, await r.json());
-    } catch (e) { $('#ag-think').innerHTML = `<span style="color:var(--rust)">出错：${esc(e.message)}</span>`; }
-  }, 30);
-}
-
-function renderAgent(body, res) {
-  body.innerHTML = '';
-  const ans = el(`<div class="card" style="margin-bottom:16px">
-    <h3><span class="dot"></span>回答 <span class="speak" onclick="speak(${JSON.stringify(res.answer)})">🔊 朗读</span></h3>
-    <div style="line-height:1.95;white-space:pre-wrap">${esc(res.answer)}</div>
-    ${res.citations && res.citations.length ? '<div class="sec-label">引文</div><div class="tags">' + res.citations.map(c => `<span class="chip muted">${esc(c)}</span>`).join('') + '</div>' : ''}
-    <div class="disclaimer">回答由大模型综合工具检索的古籍证据生成；现代机制为待验证假设，不构成临床处方建议。模型：${esc(res.model || '—')}</div></div>`);
-  body.appendChild(ans);
-  if (res.steps && res.steps.length) {
-    const sc = el(`<div class="card"><h3><span class="dot" style="background:var(--gold)"></span>推理过程（${res.steps.length} 步 · 工具调用可溯）</h3><div id="ag-steps"></div></div>`);
-    body.appendChild(sc);
-    const host = sc.querySelector('#ag-steps');
-    res.steps.forEach((s, i) => {
-      const argStr = Object.entries(s.arguments || {}).map(([k, v]) => `${k}=${v}`).join(', ');
-      const summary = stepSummary(s);
-      host.appendChild(el(`<div class="evi"><div class="cite">▸ 第${i + 1}步 · <b>${esc(TOOL_LABEL[s.tool] || s.tool)}</b> <span class="sm muted">(${esc(argStr)})</span></div>
-        <div class="txt">${summary}</div></div>`));
-    });
+async function _refreshAgentStatus() {
+  const host = $('#ag-model-status');
+  if (!host) return;
+  if (Settings.hasLocal()) {
+    const s = Settings.get();
+    const label = (s.model || '').split('/').pop() || '已配置';
+    host.innerHTML = `<span class="model-badge"><span class="dot-live"></span>${esc(label)} <span class="muted" style="font-size:11px">· 浏览器设置</span></span>`;
+    return;
+  }
+  try {
+    const st = await api('/llm/status');
+    if (st.configured) {
+      const label = (st.model || '').split('/').pop() || '已配置';
+      host.innerHTML = `<span class="model-badge"><span class="dot-live"></span>${esc(label)} <span class="muted" style="font-size:11px">· 服务端</span></span>`;
+    } else {
+      host.innerHTML = `<span class="model-badge warn">未接入 LLM · <a href="#" onclick="openSettings();return false;" style="color:var(--celadon)">立即配置</a></span>`;
+    }
+  } catch (e) {
+    host.innerHTML = `<span class="muted sm">（离线）</span>`;
   }
 }
 
-function stepSummary(s) {
+window.agAsk = function (q) { if ($('#ag-in')) $('#ag-in').value = q; _doAgAsk(q); };
+async function agAsk(q) { q = (q || '').trim(); if (q) _doAgAsk(q); }
+
+async function _doAgAsk(q) {
+  if (!q) return;
+
+  // Ensure we're in agent view
+  if (CURRENT !== 'agent') { go('agent'); await new Promise(r => setTimeout(r, 40)); }
+  if ($('#ag-in')) $('#ag-in').value = q;
+
+  const body = $('#ag-body');
+  if (!body) return;
+  body.innerHTML = '';
+
+  // Question card (will be updated during streaming)
+  const qCard = el(`<div class="card" style="margin-bottom:14px">
+    <div class="evi" style="border:none"><b style="color:var(--celadon)">问：</b>${esc(q)}</div>
+    <div id="ag-status" class="muted sm" style="margin-top:6px"><span class="loader"></span> 判断配置中…</div>
+  </div>`);
+  body.appendChild(qCard);
+  const statusEl = qCard.querySelector('#ag-status');
+
+  // Check if LLM available (local settings or server)
+  const hasLocal = Settings.hasLocal();
+  let serverConfigured = false;
+  if (!hasLocal) {
+    try { const st = await api('/llm/status'); serverConfigured = st.configured; } catch (e) {}
+  }
+
+  if (!hasLocal && !serverConfigured) {
+    statusEl.innerHTML = '<span class="muted sm">⚡ 规则模式（未配置 LLM · <a href="#" onclick="openSettings();return false;" style="color:var(--celadon)">配置模型</a>）</span>';
+    await _agRuleBasedFallback(q, body);
+    return;
+  }
+
+  statusEl.innerHTML = '<span class="loader"></span> 智能体推理中…';
+
+  // Streaming steps card (shown when first tool fires)
+  const stepsCard = el(`<div class="card" style="display:none;margin-bottom:14px">
+    <h3><span class="dot" style="background:var(--gold)"></span>推理过程 <span id="ag-step-count" class="muted sm"></span></h3>
+    <div id="ag-steps-live"></div></div>`);
+  body.appendChild(stepsCard);
+
+  const payload = Settings.agentPayload({ question: q });
+  let stepIdx = 0;
+  let thinkingEl = null;
+  let thinkingBuf = '';
+
+  try {
+    const resp = await fetch(API + '/agent/stream', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (resp.status === 503) {
+      statusEl.innerHTML = '<span class="muted sm">⚡ 规则模式（服务端未配置 LLM）</span>';
+      await _agRuleBasedFallback(q, body);
+      return;
+    }
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const parts = buf.split('\n\n');
+      buf = parts.pop() || '';
+      for (const part of parts) {
+        if (!part.startsWith('data: ')) continue;
+        let event;
+        try { event = JSON.parse(part.slice(6)); } catch (e) { continue; }
+
+        if (event.type === 'thinking') {
+          thinkingBuf += event.content;
+          if (!thinkingEl) {
+            thinkingEl = el(`<details class="think-block"><summary>MiniMax 思考过程</summary><pre class="think-text"></pre></details>`);
+            qCard.insertBefore(thinkingEl, statusEl);
+          }
+          thinkingEl.querySelector('.think-text').textContent = thinkingBuf;
+        } else if (event.type === 'tool') {
+          stepIdx++;
+          stepsCard.style.display = '';
+          stepsCard.querySelector('#ag-step-count').textContent = `(${stepIdx} 步)`;
+          stepsCard.querySelector('#ag-steps-live').appendChild(el(
+            `<div class="evi"><div class="cite">▸ 第${stepIdx}步 · <b>${esc(TOOL_LABEL[event.step.tool] || event.step.tool)}</b></div>
+             <div class="txt">${_stepSummary(event.step)}</div></div>`));
+          statusEl.innerHTML = `<span class="loader"></span> 执行第 ${stepIdx} 步 · ${esc(TOOL_LABEL[event.step.tool] || event.step.tool)}…`;
+        } else if (event.type === 'done') {
+          statusEl.innerHTML = '';
+          _renderAgentAnswer(body, event.result, stepsCard);
+        } else if (event.type === 'error') {
+          statusEl.innerHTML = `<span style="color:var(--rust)">出错：${esc(event.content)}</span>`;
+        }
+      }
+    }
+  } catch (e) {
+    statusEl.innerHTML = `<span style="color:var(--rust)">网络出错：${esc(e.message)}</span>`;
+  }
+}
+
+function _renderAgentAnswer(body, res, stepsCard) {
+  const ans = el(`<div class="card" style="margin-bottom:14px">
+    <h3><span class="dot"></span>回答 <span class="speak" onclick="speak(${JSON.stringify(res.answer)})">🔊 朗读</span></h3>
+    <div style="line-height:1.95;white-space:pre-wrap">${esc(res.answer)}</div>
+    ${res.citations && res.citations.length
+      ? '<div class="sec-label">引文</div><div class="tags">' + res.citations.map(c => `<span class="chip muted">${esc(c)}</span>`).join('') + '</div>'
+      : ''}
+    <div class="disclaimer">回答由大模型综合工具检索的古籍证据生成；现代机制为待验证假设，不构成临床处方建议。模型：${esc(res.model || '—')}</div>
+  </div>`);
+  if (stepsCard && stepsCard.parentNode) {
+    stepsCard.parentNode.insertBefore(ans, stepsCard);
+  } else {
+    body.appendChild(ans);
+    // Fallback: render steps if stepsCard wasn't used
+    if (res.steps && res.steps.length) {
+      const sc = el(`<div class="card"><h3><span class="dot" style="background:var(--gold)"></span>推理过程（${res.steps.length} 步）</h3><div></div></div>`);
+      body.appendChild(sc);
+      const host = sc.querySelector('div');
+      res.steps.forEach((s, i) => {
+        const argStr = Object.entries(s.arguments || {}).map(([k, v]) => `${k}=${v}`).join(', ');
+        host.appendChild(el(`<div class="evi"><div class="cite">▸ 第${i+1}步 · <b>${esc(TOOL_LABEL[s.tool] || s.tool)}</b> <span class="sm muted">(${esc(argStr)})</span></div>
+          <div class="txt">${_stepSummary(s)}</div></div>`));
+      });
+    }
+  }
+}
+
+function _stepSummary(s) {
   const r = s.result || {};
   if (r.error) return `<span style="color:var(--rust)">${esc(r.error)}</span>`;
   if (r.results) return r.results.slice(0, 3).map(x => `${esc(x.citation)}：${esc(x.snippet)}`).join('<br>') || '（无命中）';
@@ -588,7 +837,75 @@ function stepSummary(s) {
 }
 function _trim(s, n) { return s.length > n ? s.slice(0, n) + '…' : s; }
 
-/* ----------------------------- Voice ------------------------------ */
+/* ---- Rule-based fallback (when no LLM configured) ---- */
+async function _agRuleBasedFallback(q, body) {
+  const fallCard = el(`<div class="card">
+    <h3><span class="dot" style="background:var(--muted)"></span>规则检索结果</h3>
+    <div class="rule-mode-badge">⚡ 规则模式 · <a href="#" onclick="openSettings();return false;">配置大语言模型</a>以获得智能综合回答</div>
+    <div id="ag-rule-content"></div>
+  </div>`);
+  body.appendChild(fallCard);
+  const content = fallCard.querySelector('#ag-rule-content');
+
+  // 1. BM25 full-text search
+  try {
+    const sr = await api('/search?limit=6&q=' + encodeURIComponent(q));
+    if (sr.results.length) {
+      const sec = el('<div></div>');
+      sec.appendChild(el('<div class="sec-label">引文检索（BM25）</div>'));
+      sr.results.slice(0, 4).forEach(r => sec.appendChild(el(
+        `<div class="evi"><div class="cite">▪ ${esc(r.citation)}<span class="score">score ${r.score}</span></div>
+         <div class="txt">${esc(r.snippet)}</div></div>`)));
+      content.appendChild(sec);
+    }
+  } catch (e) {}
+
+  // 2. Detect formula names in query
+  const words = q.match(/[一-龥]{2,10}/g) || [];
+  for (const w of words) {
+    if (!isFormulaName(w)) continue;
+    try {
+      const g = await api('/formula/' + encodeURIComponent(w));
+      if (!g.found) continue;
+      const herbs = (g.primary.composition_herbs || []).slice(0, 8)
+        .map(h => `<span class="chip" onclick="go('sourcing','${esc(h)}')">${esc(h)}</span>`).join('');
+      const sec = el('<div></div>');
+      sec.appendChild(el(`<div class="sec-label">方剂谱系 · ${esc(w)}</div>`));
+      sec.appendChild(el(`<div style="margin-bottom:8px"><div class="tags">${herbs || '—'}</div></div>`));
+      if (g.ancestors.length || g.descendants.length) {
+        sec.appendChild(el(`<p class="sm muted" style="margin:4px 0">源方：${esc((g.ancestors[0]||{}).name||'—')} · 衍生 ${g.descendants.length} 首</p>`));
+      }
+      sec.appendChild(el(`<button class="btn ghost" style="margin-top:6px;font-size:12px" onclick="go('formula','${esc(w)}')">查看完整谱系 →</button>`));
+      content.appendChild(sec);
+    } catch (e) {}
+    break;
+  }
+
+  // 3. Detect herb names → trace
+  for (const w of words) {
+    if (isFormulaName(w) || w.length < 2) continue;
+    try {
+      const tr = await api('/trace/' + encodeURIComponent(w) + '?limit=5');
+      if (!tr.found && !tr.evidence) continue;
+      const n = (tr.evidence || []).length;
+      if (!n) continue;
+      const sec = el('<div></div>');
+      sec.appendChild(el(`<div class="sec-label">本草溯源 · ${esc(w)}（${n} 条引文）</div>`));
+      (tr.evidence || []).slice(0, 2).forEach(e => sec.appendChild(el(
+        `<div class="evi"><div class="cite">▪ ${esc(e.citation || '')}</div><div class="txt">${esc(e.snippet)}</div></div>`)));
+      sec.appendChild(el(`<button class="btn ghost" style="margin-top:6px;font-size:12px" onclick="go('sourcing','${esc(w)}')">完整溯源 →</button>`));
+      content.appendChild(sec);
+      break;
+    } catch (e) {}
+  }
+
+  content.appendChild(el(`<div class="disclaimer" style="margin-top:14px">
+    配置大语言模型后，智能体将自动调用以上工具并综合生成带引文的分析回答。
+    <a href="#" onclick="openSettings();return false;" style="color:var(--celadon)">立即配置 MiniMax / OpenAI / Anthropic →</a>
+  </div>`));
+}
+
+/* ========================= Voice ========================= */
 const Voice = {
   serverASR: false, serverTTS: false, recognizing: false, rec: null, mediaRec: null, chunks: [],
   async init() {
@@ -659,6 +976,6 @@ const Voice = {
 window.speak = (t) => Voice.speak(t);
 $('#micBtn').addEventListener('click', () => Voice.toggleMic());
 
-/* ----------------------------- Boot ------------------------------- */
+/* ========================= Boot ========================= */
 Voice.init();
 go('overview');
