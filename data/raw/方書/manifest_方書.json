@@ -1,0 +1,706 @@
+[
+  {
+    "category": "方書",
+    "title": "三因極一病證方論",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 21,
+    "source_path": "/mnt/data/book_extract_all/三因極一病證方論"
+  },
+  {
+    "category": "方書",
+    "title": "世醫得效方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 26,
+    "source_path": "/mnt/data/book_extract_all/世醫得效方"
+  },
+  {
+    "category": "方書",
+    "title": "中醫方劑名稱由來",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/中醫方劑名稱由來"
+  },
+  {
+    "category": "方書",
+    "title": "串雅內外編",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/串雅內外編"
+  },
+  {
+    "category": "方書",
+    "title": "五十二病方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/五十二病方"
+  },
+  {
+    "category": "方書",
+    "title": "仁術便覽",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 10,
+    "source_path": "/mnt/data/book_extract_all/仁術便覽"
+  },
+  {
+    "category": "方書",
+    "title": "仁齋直指方論",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 29,
+    "source_path": "/mnt/data/book_extract_all/仁齋直指方論"
+  },
+  {
+    "category": "方書",
+    "title": "備急千金要方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 34,
+    "source_path": "/mnt/data/book_extract_all/備急千金要方"
+  },
+  {
+    "category": "方書",
+    "title": "備急千金要方_1",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 38,
+    "source_path": "/mnt/data/book_extract_all/備急千金要方_1"
+  },
+  {
+    "category": "方書",
+    "title": "全生指迷方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/全生指迷方"
+  },
+  {
+    "category": "方書",
+    "title": "十劑表",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/十劑表"
+  },
+  {
+    "category": "方書",
+    "title": "千金寶要",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/千金寶要"
+  },
+  {
+    "category": "方書",
+    "title": "千金翼方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 34,
+    "source_path": "/mnt/data/book_extract_all/千金翼方"
+  },
+  {
+    "category": "方書",
+    "title": "千金翼方_1",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 32,
+    "source_path": "/mnt/data/book_extract_all/千金翼方_1"
+  },
+  {
+    "category": "方書",
+    "title": "博濟方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/博濟方"
+  },
+  {
+    "category": "方書",
+    "title": "古今名醫方論",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/古今名醫方論"
+  },
+  {
+    "category": "方書",
+    "title": "古代房中秘方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/古代房中秘方"
+  },
+  {
+    "category": "方書",
+    "title": "古方匯精",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/古方匯精"
+  },
+  {
+    "category": "方書",
+    "title": "史載之方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/史載之方"
+  },
+  {
+    "category": "方書",
+    "title": "名醫別錄",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/名醫別錄"
+  },
+  {
+    "category": "方書",
+    "title": "嚴氏濟生方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/嚴氏濟生方"
+  },
+  {
+    "category": "方書",
+    "title": "回生集",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/回生集"
+  },
+  {
+    "category": "方書",
+    "title": "增訂十藥神書",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/增訂十藥神書"
+  },
+  {
+    "category": "方書",
+    "title": "增訂醫方歌訣",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/增訂醫方歌訣"
+  },
+  {
+    "category": "方書",
+    "title": "外治壽世方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/外治壽世方"
+  },
+  {
+    "category": "方書",
+    "title": "外臺秘要",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 48,
+    "source_path": "/mnt/data/book_extract_all/外臺秘要"
+  },
+  {
+    "category": "方書",
+    "title": "外臺秘要_1",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 54,
+    "source_path": "/mnt/data/book_extract_all/外臺秘要_1"
+  },
+  {
+    "category": "方書",
+    "title": "大小諸證方論",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/大小諸證方論"
+  },
+  {
+    "category": "方書",
+    "title": "太平惠民和劑局方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 14,
+    "source_path": "/mnt/data/book_extract_all/太平惠民和劑局方"
+  },
+  {
+    "category": "方書",
+    "title": "太平惠民和劑局方_1",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 12,
+    "source_path": "/mnt/data/book_extract_all/太平惠民和劑局方_1"
+  },
+  {
+    "category": "方書",
+    "title": "太平聖惠方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 103,
+    "source_path": "/mnt/data/book_extract_all/太平聖惠方"
+  },
+  {
+    "category": "方書",
+    "title": "太醫院秘藏膏丹丸散方劑",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/太醫院秘藏膏丹丸散方劑"
+  },
+  {
+    "category": "方書",
+    "title": "奇效簡便良方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/奇效簡便良方"
+  },
+  {
+    "category": "方書",
+    "title": "奇效良方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 71,
+    "source_path": "/mnt/data/book_extract_all/奇效良方"
+  },
+  {
+    "category": "方書",
+    "title": "奇方類編",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/奇方類編"
+  },
+  {
+    "category": "方書",
+    "title": "孫真人海上方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/孫真人海上方"
+  },
+  {
+    "category": "方書",
+    "title": "小品方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/小品方"
+  },
+  {
+    "category": "方書",
+    "title": "局方發揮",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/局方發揮"
+  },
+  {
+    "category": "方書",
+    "title": "御藥院方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 14,
+    "source_path": "/mnt/data/book_extract_all/御藥院方"
+  },
+  {
+    "category": "方書",
+    "title": "急救便方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/急救便方"
+  },
+  {
+    "category": "方書",
+    "title": "急救良方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/急救良方"
+  },
+  {
+    "category": "方書",
+    "title": "惠直堂經驗方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/惠直堂經驗方"
+  },
+  {
+    "category": "方書",
+    "title": "成方切用",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 29,
+    "source_path": "/mnt/data/book_extract_all/成方切用"
+  },
+  {
+    "category": "方書",
+    "title": "文堂集驗方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 7,
+    "source_path": "/mnt/data/book_extract_all/文堂集驗方"
+  },
+  {
+    "category": "方書",
+    "title": "方症會要",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/方症會要"
+  },
+  {
+    "category": "方書",
+    "title": "是齋百一選方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 29,
+    "source_path": "/mnt/data/book_extract_all/是齋百一選方"
+  },
+  {
+    "category": "方書",
+    "title": "時方妙用",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/時方妙用"
+  },
+  {
+    "category": "方書",
+    "title": "時方歌括",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/時方歌括"
+  },
+  {
+    "category": "方書",
+    "title": "普濟方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 377,
+    "source_path": "/mnt/data/book_extract_all/普濟方"
+  },
+  {
+    "category": "方書",
+    "title": "普濟本事方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/普濟本事方"
+  },
+  {
+    "category": "方書",
+    "title": "本草簡要方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 12,
+    "source_path": "/mnt/data/book_extract_all/本草簡要方"
+  },
+  {
+    "category": "方書",
+    "title": "楊氏家藏方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 23,
+    "source_path": "/mnt/data/book_extract_all/楊氏家藏方"
+  },
+  {
+    "category": "方書",
+    "title": "洪氏集驗方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/洪氏集驗方"
+  },
+  {
+    "category": "方書",
+    "title": "湯頭歌訣",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/湯頭歌訣"
+  },
+  {
+    "category": "方書",
+    "title": "濟世神驗良方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/濟世神驗良方"
+  },
+  {
+    "category": "方書",
+    "title": "瑞竹堂經驗方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/瑞竹堂經驗方"
+  },
+  {
+    "category": "方書",
+    "title": "祖劑",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/祖劑"
+  },
+  {
+    "category": "方書",
+    "title": "神仙濟世良方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/神仙濟世良方"
+  },
+  {
+    "category": "方書",
+    "title": "種福堂公選良方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/種福堂公選良方"
+  },
+  {
+    "category": "方書",
+    "title": "絳囊撮要",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/絳囊撮要"
+  },
+  {
+    "category": "方書",
+    "title": "絳雪園古方選注",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/絳雪園古方選注"
+  },
+  {
+    "category": "方書",
+    "title": "經驗丹方匯編",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/經驗丹方匯編"
+  },
+  {
+    "category": "方書",
+    "title": "經驗奇方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/經驗奇方"
+  },
+  {
+    "category": "方書",
+    "title": "聖濟總錄",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 154,
+    "source_path": "/mnt/data/book_extract_all/聖濟總錄"
+  },
+  {
+    "category": "方書",
+    "title": "肘後備急方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 14,
+    "source_path": "/mnt/data/book_extract_all/肘後備急方"
+  },
+  {
+    "category": "方書",
+    "title": "華佗神方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 27,
+    "source_path": "/mnt/data/book_extract_all/華佗神方"
+  },
+  {
+    "category": "方書",
+    "title": "藥性切用",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/藥性切用"
+  },
+  {
+    "category": "方書",
+    "title": "藥症忌宜",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/藥症忌宜"
+  },
+  {
+    "category": "方書",
+    "title": "蘇沈良方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/蘇沈良方"
+  },
+  {
+    "category": "方書",
+    "title": "衛生易簡方",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 17,
+    "source_path": "/mnt/data/book_extract_all/衛生易簡方"
+  },
+  {
+    "category": "方書",
+    "title": "退思集類方歌注",
+    "classification_source": "book_metadata",
+    "is_dir": true,
+    "file_count": 1,
+    "source_path": "/mnt/data/book_extract_all/退思集類方歌注"
+  },
+  {
+    "category": "方書",
+    "title": "醫心方",
+    "classification_source": "fallback_title_rule_no_index",
+    "is_dir": true,
+    "file_count": 0,
+    "source_path": "/mnt/data/book_extract_all/醫心方"
+  },
+  {
+    "category": "方書",
+    "title": "醫方歌括",
+    "classification_source": "fallback_title_rule_no_index",
+    "is_dir": true,
+    "file_count": 0,
+    "source_path": "/mnt/data/book_extract_all/醫方歌括"
+  },
+  {
+    "category": "方書",
+    "title": "醫方簡義",
+    "classification_source": "fallback_title_rule_no_index",
+    "is_dir": true,
+    "file_count": 0,
+    "source_path": "/mnt/data/book_extract_all/醫方簡義"
+  },
+  {
+    "category": "方書",
+    "title": "醫方考",
+    "classification_source": "fallback_title_rule_no_index",
+    "is_dir": true,
+    "file_count": 0,
+    "source_path": "/mnt/data/book_extract_all/醫方考"
+  },
+  {
+    "category": "方書",
+    "title": "醫方論",
+    "classification_source": "fallback_title_rule_no_index",
+    "is_dir": true,
+    "file_count": 0,
+    "source_path": "/mnt/data/book_extract_all/醫方論"
+  },
+  {
+    "category": "方書",
+    "title": "醫方證治匯編歌訣",
+    "classification_source": "fallback_title_rule_no_index",
+    "is_dir": true,
+    "file_count": 0,
+    "source_path": "/mnt/data/book_extract_all/醫方證治匯編歌訣"
+  },
+  {
+    "category": "方書",
+    "title": "醫方集宜",
+    "classification_source": "fallback_title_rule_no_index",
+    "is_dir": true,
+    "file_count": 0,
+    "source_path": "/mnt/data/book_extract_all/醫方集宜"
+  },
+  {
+    "category": "方書",
+    "title": "醫方集解",
+    "classification_source": "fallback_title_rule_no_index",
+    "is_dir": true,
+    "file_count": 0,
+    "source_path": "/mnt/data/book_extract_all/醫方集解"
+  },
+  {
+    "category": "方書",
+    "title": "醫方集解_條列版",
+    "classification_source": "fallback_title_rule_no_index",
+    "is_dir": true,
+    "file_count": 0,
+    "source_path": "/mnt/data/book_extract_all/醫方集解_條列版"
+  },
+  {
+    "category": "方書",
+    "title": "錢氏秘傳產科方書名試驗錄",
+    "classification_source": "fallback_title_rule_no_index",
+    "is_dir": true,
+    "file_count": 0,
+    "source_path": "/mnt/data/book_extract_all/錢氏秘傳產科方書名試驗錄"
+  },
+  {
+    "category": "方書",
+    "title": "長沙方歌括",
+    "classification_source": "fallback_title_rule_no_index",
+    "is_dir": true,
+    "file_count": 0,
+    "source_path": "/mnt/data/book_extract_all/長沙方歌括"
+  },
+  {
+    "category": "方書",
+    "title": "集驗方",
+    "classification_source": "fallback_title_rule_no_index",
+    "is_dir": true,
+    "file_count": 0,
+    "source_path": "/mnt/data/book_extract_all/集驗方"
+  },
+  {
+    "category": "方書",
+    "title": "雞峰普濟方",
+    "classification_source": "fallback_title_rule_no_index",
+    "is_dir": true,
+    "file_count": 0,
+    "source_path": "/mnt/data/book_extract_all/雞峰普濟方"
+  },
+  {
+    "category": "方書",
+    "title": "類證普濟本事方續集",
+    "classification_source": "fallback_title_rule_no_index",
+    "is_dir": true,
+    "file_count": 0,
+    "source_path": "/mnt/data/book_extract_all/類證普濟本事方續集"
+  },
+  {
+    "category": "方書",
+    "title": "食療方",
+    "classification_source": "fallback_title_rule_no_index",
+    "is_dir": true,
+    "file_count": 0,
+    "source_path": "/mnt/data/book_extract_all/食療方"
+  },
+  {
+    "category": "方書",
+    "title": "驗方新編",
+    "classification_source": "fallback_title_rule_no_index",
+    "is_dir": true,
+    "file_count": 0,
+    "source_path": "/mnt/data/book_extract_all/驗方新編"
+  },
+  {
+    "category": "方書",
+    "title": "魯府禁方",
+    "classification_source": "fallback_title_rule_no_index",
+    "is_dir": true,
+    "file_count": 0,
+    "source_path": "/mnt/data/book_extract_all/魯府禁方"
+  }
+]

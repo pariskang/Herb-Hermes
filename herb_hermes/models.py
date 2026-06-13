@@ -100,6 +100,52 @@ class HerbEntry:
 
 
 @dataclass
+class Derivation:
+    """An explicit 加減 derivation cue parsed from a formula's text."""
+
+    relation: str          # 加 / 去 / 类方 / 衍生 / 同名
+    herbs: List[str]       # modifier herbs (for 加/去)
+    target: str            # resulting/related formula name
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class Formula:
+    """A structured formula (方剂) record."""
+
+    formula_id: str
+    name: str
+    book_title: str
+    dynasty: str = ""
+    author: str = ""
+    category: str = ""              # 門類 / 治法 (enclosing non-formula heading)
+    composition_herbs: List[str] = field(default_factory=list)   # canonical herbs
+    composition_raw: str = ""      # raw herb-list span (with doses/炮製)
+    indications: str = ""          # 主治
+    preparation: str = ""          # 煎服法
+    parent_id: str = ""            # structural ancestor (祖劑/湯頭 nesting)
+    derivations: List[Derivation] = field(default_factory=list)  # inline 加減
+    source_file: str = ""
+    text: str = ""
+
+    def to_dict(self) -> Dict[str, Any]:
+        d = asdict(self)
+        return d
+
+    @classmethod
+    def from_dict(cls, d: Dict[str, Any]) -> "Formula":
+        derivs = [Derivation(**x) for x in d.get("derivations", [])]
+        kwargs = {k: d.get(k, cls.__dataclass_fields__[k].default)
+                  for k in cls.__dataclass_fields__ if k != "derivations"}
+        # defaults that are factory-based
+        kwargs["composition_herbs"] = d.get("composition_herbs", [])
+        kwargs["derivations"] = derivs
+        return cls(**kwargs)
+
+
+@dataclass
 class Evidence:
     """One piece of classical evidence backing a claim, fully attributable."""
 

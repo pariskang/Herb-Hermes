@@ -11,10 +11,14 @@ The knowledge base is loaded once at startup (or built on demand if absent).
 from __future__ import annotations
 
 from functools import lru_cache
+from pathlib import Path
 from typing import Optional
 
 try:
     from fastapi import FastAPI, HTTPException, Query
+    from fastapi.staticfiles import StaticFiles
+    from fastapi.responses import FileResponse, RedirectResponse
+    from fastapi.middleware.cors import CORSMiddleware
 except Exception as exc:  # pragma: no cover - import guard
     raise SystemExit(
         "FastAPI is required for the API layer. Install with: pip install fastapi uvicorn"
@@ -23,13 +27,20 @@ except Exception as exc:  # pragma: no cover - import guard
 from ..config import DEFAULT_CORPUS_DIR, KB_PATH
 from ..discovery.hypothesis import build_hypothesis_card
 from ..discovery.sourcing import trace_herb
+from ..report import herb_dossier_markdown
 from ..store import KnowledgeBase
 
 app = FastAPI(
     title="Herb-Hermes API",
-    version="0.1.0",
-    description="本草—方剂—机制—发现 证据操作系统 (MVP)",
+    version="0.2.0",
+    description="本草—方剂—机制—发现 证据操作系统：本草溯源 / 方剂谱系 / 药对配伍 / 科研假设",
 )
+
+app.add_middleware(
+    CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
+)
+
+_FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
 
 
 @lru_cache(maxsize=1)
@@ -104,3 +115,46 @@ def graph(name: str) -> dict:
     kb = get_kb()
     canonical = kb.normalizer.normalize(name).canonical
     return {"herb": canonical, "neighbors": kb.graph.neighbors(canonical)}
+
+
+@app.get("/formula/{name}")
+def formula(name: str) -> dict:
+    """方剂谱系：组成、历代演变、源流、衍生方、加減、类方网络。"""
+    return get_kb().genealogy.genealogy(name)
+
+
+@app.get("/formulas")
+def formulas(herb: str, limit: int = Query(50, ge=1, le=300)) -> dict:
+    kb = get_kb()
+    canonical = kb.normalizer.normalize(herb).canonical
+    hits = kb.genealogy.formulas_with_herb(canonical, limit=limit)
+    return {
+        "herb": canonical,
+        "count": len(hits),
+        "formulas": [
+            {"name": f.name, "book": f.book_title, "dynasty": f.dynasty,
+             "category": f.category, "herbs": f.composition_herbs,
+             "indications": f.indications}
+            for f in hits
+        ],
+    }
+
+
+@app.get("/report/{name}")
+def report(name: str, disease: str = "骨质疏松") -> dict:
+    md = herb_dossier_markdown(get_kb(), name, disease=disease)
+    return {"name": name, "markdown": md}
+
+
+# ---- static frontend ("研究驾驶舱") ------------------------------------
+# Served under /app/ so the page's relative assets (styles.css, app.js) resolve
+# correctly; "/" redirects there.
+@app.get("/")
+def index():
+    if (_FRONTEND_DIR / "index.html").exists():
+        return RedirectResponse(url="/app/")
+    raise HTTPException(404, "frontend not built")
+
+
+if _FRONTEND_DIR.exists():
+    app.mount("/app", StaticFiles(directory=str(_FRONTEND_DIR), html=True), name="frontend")

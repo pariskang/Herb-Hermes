@@ -60,6 +60,37 @@ PROSE_BOOK = """\
 """
 
 
+FORMULA_BOOK = """\
+======測試方書譜======
+
+<book>
+書名=測試方書譜
+作者=測試
+朝代=宋
+年份=1100
+分類=方書
+品質=0%
+</book>
+
+=====補益之劑=====
+
+====四君子湯====
+
+治氣虛諸證。人參　白朮　茯苓　甘草（各等分）。上為末，每服二錢。
+加半夏陳皮名六君子湯。
+
+===六君子湯===
+
+治氣虛有痰。人參　白朮　茯苓　甘草　半夏　陳皮。上為末。
+
+=====祛風之劑=====
+
+====桂枝湯====
+
+治太陽中風。桂枝　芍藥　生薑　大棗　甘草。上五味，水煎服。
+"""
+
+
 @pytest.fixture
 def mini_corpus(tmp_path: Path) -> Path:
     books = tmp_path / "本草" / "書籍"
@@ -70,3 +101,12 @@ def mini_corpus(tmp_path: Path) -> Path:
     b2.mkdir(parents=True)
     (b2 / "index.txt").write_text(PROSE_BOOK, encoding="utf-8")
     return tmp_path / "本草"
+
+
+@pytest.fixture
+def mini_formula_corpus(tmp_path: Path) -> Path:
+    books = tmp_path / "方書" / "書籍"
+    b = books / "測試方書譜"
+    b.mkdir(parents=True)
+    (b / "index.txt").write_text(FORMULA_BOOK, encoding="utf-8")
+    return tmp_path / "方書"

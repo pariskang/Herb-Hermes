@@ -43,7 +43,14 @@ def main() -> int:
         other = p.herb_b if p.herb_a == "黃芪" else p.herb_a
         print(f"   黃芪–{other}: count={p.count} pmi={p.pmi}")
 
-    print("\n## 5. 自动科研假设卡")
+    print("\n## 5. 方剂谱系（桂枝湯源流重建）")
+    g = kb.genealogy.genealogy("桂枝湯")
+    if g.get("found"):
+        print(f"   组成: {'、'.join(g['primary']['composition_herbs'])}")
+        print(f"   历代著录: {len(g['occurrences'])} 部书")
+        print(f"   衍生方: {'、'.join(d['name'] for d in g['descendants'][:8])}")
+
+    print("\n## 6. 自动科研假设卡")
     card = build_hypothesis_card(kb, "黃芪", partner="當歸", disease="骨质疏松")
     print(f"   {card.hypothesis_id}: {card.research_question}")
     print(f"   证据等级: {card.evidence_score}")
@@ -51,7 +58,8 @@ def main() -> int:
     print(f"   候选通路: {', '.join(card.mechanism_chain['pathways'])}")
     print(f"   古籍证据条数: {len(card.classical_evidence)}")
 
-    print("\n（提示：`python -m herb_hermes.cli report 杜仲 --out 杜仲.md` 导出完整报告）")
+    print("\n（提示：`python -m herb_hermes.cli formula 桂枝湯` 查看方剂谱系；")
+    print("       `uvicorn herb_hermes.api.server:app` 启动研究驾驶舱前端）")
     return 0
 
 

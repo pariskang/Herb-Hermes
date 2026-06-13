@@ -119,6 +119,43 @@ def cmd_hypothesis(args) -> int:
     return 0
 
 
+def cmd_formula(args) -> int:
+    kb = _load_kb()
+    g = kb.genealogy.genealogy(args.name)
+    if not g.get("found"):
+        print(f"未找到方剂：{args.name}")
+        return 0
+    p = g["primary"]
+    print(f"# 方剂谱系：{args.name}")
+    print(f"  代表出处：《{p['book']}》{p['dynasty']} {p['author']}  类目：{p['category']}")
+    print(f"  组成：{'、'.join(p['composition_herbs'])}")
+    if p["indications"]:
+        print(f"  主治：{p['indications']}")
+    print(f"  历代出现（{len(g['occurrences'])} 处）：" +
+          "、".join(f"《{o['book']}》" for o in g["occurrences"][:10]))
+    if g["ancestors"]:
+        print("  祖方/源流：" + " ← ".join(a["name"] for a in g["ancestors"]))
+    if g["descendants"]:
+        print("  衍生方：" + "、".join(d["name"] for d in g["descendants"][:12]))
+    if g["derivations"]:
+        print("  加減記載：" + "；".join(f"{d['relation']}{''.join(d['herbs'])}→{d['target']}"
+                                         for d in g["derivations"][:6]))
+    if g["similar"]:
+        print("  类方（组成相似）：" + "、".join(f"{s['name']}({s['jaccard']})"
+                                                for s in g["similar"][:8]))
+    return 0
+
+
+def cmd_formulas_with(args) -> int:
+    kb = _load_kb()
+    canonical = kb.normalizer.normalize(args.herb).canonical
+    hits = kb.genealogy.formulas_with_herb(canonical, limit=args.limit)
+    print(f"含『{canonical}』的方剂（{len(hits)}，按组成精简度排序）：")
+    for f in hits:
+        print(f"  《{f.book_title}》{f.name}：{'、'.join(f.composition_herbs[:8])}")
+    return 0
+
+
 def cmd_graph(args) -> int:
     kb = _load_kb()
     nbrs = kb.graph.neighbors(kb.normalizer.normalize(args.name).canonical)
@@ -182,6 +219,15 @@ def build_parser() -> argparse.ArgumentParser:
     sp = sub.add_parser("graph", help="知识图谱邻接查询")
     sp.add_argument("name")
     sp.set_defaults(func=cmd_graph)
+
+    sp = sub.add_parser("formula", help="方剂谱系（源流/衍生/类方/加減）")
+    sp.add_argument("name")
+    sp.set_defaults(func=cmd_formula)
+
+    sp = sub.add_parser("formulas-with", help="检索含某味药的方剂")
+    sp.add_argument("herb")
+    sp.add_argument("--limit", type=int, default=30)
+    sp.set_defaults(func=cmd_formulas_with)
 
     sp = sub.add_parser("report", help="一键导出本草档案报告 (Markdown)")
     sp.add_argument("name")

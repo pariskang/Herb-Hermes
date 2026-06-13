@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Herb-Hermes · 本草证据操作系统</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">本</div>
+        <div>
+          <h1>Herb-Hermes</h1>
+          <p>本草 · 方剂 · 机制 · 发现</p>
+        </div>
+      </div>
+      <div class="nav-item active" data-view="overview"><span class="ic">◎</span> 概览驾驶舱</div>
+      <div class="nav-item" data-view="sourcing"><span class="ic">⟲</span> 本草溯源</div>
+      <div class="nav-item" data-view="formula"><span class="ic">⌘</span> 方剂谱系</div>
+      <div class="nav-item" data-view="pairs"><span class="ic">⇄</span> 药对配伍</div>
+      <div class="nav-item" data-view="search"><span class="ic">⌕</span> 古籍检索</div>
+      <div class="nav-item" data-view="hypothesis"><span class="ic">✦</span> 科研假设</div>
+      <div class="nav-spacer"></div>
+      <div class="nav-foot">
+        语料：中醫笈成 本草 + 方書<br />
+        v0.2 · 离线证据闭环<br />
+        <span style="color:var(--rust)">仅供科研，不构成诊疗建议</span>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <div class="topbar">
+        <div class="search">
+          <span style="color:var(--jade)">⌕</span>
+          <input id="globalSearch" placeholder="输入药名（如 黃芪、杜仲）或方名（如 桂枝湯、四君子湯）…" />
+          <span class="hint">Enter</span>
+        </div>
+        <div class="ttl" id="topTitle">本草—方剂—机制—发现 证据操作系统</div>
+      </div>
+      <div id="content"></div>
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>

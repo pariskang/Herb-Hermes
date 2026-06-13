@@ -6,21 +6,21 @@ from herb_hermes.discovery.hypothesis import build_hypothesis_card
 
 
 def test_build_and_stats(mini_corpus):
-    kb = KnowledgeBase.build(mini_corpus)
+    kb = KnowledgeBase.build(mini_corpus, formula_dir=None)
     assert kb.stats["books"] == 2
     assert kb.stats["herb_entries"] == 2
     assert "黃芪" in kb.herb_vocab        # canonicalized from 黃耆
 
 
 def test_registry_alias_lookup(mini_corpus):
-    kb = KnowledgeBase.build(mini_corpus)
+    kb = KnowledgeBase.build(mini_corpus, formula_dir=None)
     # querying by canonical name returns the entry stored under alias 黃耆
     assert kb.get_entries("黃芪")
     assert kb.get_entries("黄芪")          # simplified query also resolves
 
 
 def test_trace_across_books(mini_corpus):
-    kb = KnowledgeBase.build(mini_corpus)
+    kb = KnowledgeBase.build(mini_corpus, formula_dir=None)
     res = trace_herb(kb, "黃芪")
     books = {t["book"] for t in res.dynasty_timeline}
     assert "測試本草" in books and "測試方書" in books
@@ -36,13 +36,13 @@ def test_trace_ambiguous():
 
 
 def test_pairs_mined(mini_corpus):
-    kb = KnowledgeBase.build(mini_corpus)
+    kb = KnowledgeBase.build(mini_corpus, formula_dir=None)
     pair_set = {frozenset((p.herb_a, p.herb_b)) for p in kb.pairs}
     assert frozenset(("黃芪", "當歸")) in pair_set
 
 
 def test_hypothesis_card(mini_corpus):
-    kb = KnowledgeBase.build(mini_corpus)
+    kb = KnowledgeBase.build(mini_corpus, formula_dir=None)
     card = build_hypothesis_card(kb, "黃芪", partner="當歸", disease="骨质疏松")
     assert card.hypothesis_id.startswith("HH-HYP-")
     assert "骨质疏松" in card.research_question
@@ -51,9 +51,21 @@ def test_hypothesis_card(mini_corpus):
 
 
 def test_save_load_roundtrip(mini_corpus, tmp_path):
-    kb = KnowledgeBase.build(mini_corpus)
+    kb = KnowledgeBase.build(mini_corpus, formula_dir=None)
     path = kb.save(tmp_path / "kb.json")
     kb2 = KnowledgeBase.load(path)
     assert kb2.stats["herb_entries"] == kb.stats["herb_entries"]
     assert kb2.get_entries("黃芪")
     assert kb2.bm25.search("補氣")
+
+
+def test_build_with_formulas(mini_corpus, mini_formula_corpus, tmp_path):
+    kb = KnowledgeBase.build(mini_corpus, formula_dir=mini_formula_corpus)
+    assert kb.stats["formula_formulas"] >= 3
+    g = kb.genealogy.genealogy("四君子湯")
+    assert g["found"]
+    # round-trip preserves genealogy
+    kb2 = KnowledgeBase.load(kb.save(tmp_path / "kb2.json"))
+    assert kb2.genealogy.genealogy("桂枝湯")["found"]
+    # formula compositions are searchable
+    assert kb2.bm25.search("太陽中風")

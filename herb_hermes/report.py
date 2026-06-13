@@ -81,6 +81,14 @@ def herb_dossier_markdown(kb: KnowledgeBase, herb: str,
     if funcs:
         out += ["## 功效图谱节点", "", f"- {'、'.join(funcs)}", ""]
 
+    formulas = kb.genealogy.formulas_with_herb(canonical, limit=12)
+    if formulas:
+        out += ["## 所在经典方剂", ""]
+        for f in formulas:
+            comp = "、".join(f.composition_herbs[:8])
+            out.append(f"- 《{f.book_title}》{f.name}：{comp}")
+        out.append("")
+
     out += ["## 科研假设", ""]
     partner = None
     if pairs:

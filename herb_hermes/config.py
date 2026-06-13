@@ -13,8 +13,9 @@ DATA_DIR = Path(os.environ.get("HERB_HERMES_DATA", ROOT_DIR / "data"))
 RAW_DIR = DATA_DIR / "raw"
 PROCESSED_DIR = DATA_DIR / "processed"
 
-# Default corpus location: the 本草 (materia medica) category bundle.
+# Default corpus locations: 本草 (materia medica) and 方書 (formula) bundles.
 DEFAULT_CORPUS_DIR = RAW_DIR / "本草"
+DEFAULT_FORMULA_DIR = RAW_DIR / "方書"
 
 # Where the built knowledge base is stored.
 KB_PATH = PROCESSED_DIR / "herb_hermes_kb.json"

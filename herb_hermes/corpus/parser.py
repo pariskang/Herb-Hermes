@@ -21,6 +21,10 @@ from typing import Dict, List, Tuple
 # A heading line is a run of '=' around a title, e.g. =====人參===== .
 _HEADING_RE = re.compile(r"^\s*=+\s*(.+?)\s*=+\s*$")
 
+# A leveled heading: symmetric '=' runs whose length encodes nesting depth,
+# e.g. ======卷====== (6) > =====門類===== (5) > ====方名==== (4) > ===子方=== (3).
+_LEVEL_HEADING_RE = re.compile(r"^(={2,8})([^=].*?)(={2,8})$")
+
 # Known structured field keys found inside <code> blocks of itemized books.
 # Mapped to canonical HerbEntry attribute names.
 FIELD_KEY_MAP: Dict[str, str] = {
@@ -114,6 +118,36 @@ def split_sections(text: str) -> List[Tuple[str, str]]:
             cur_lines.append(line)
     flush()
     return sections
+
+
+def split_sections_leveled(text: str) -> List[Tuple[int, str, str]]:
+    """Like :func:`split_sections` but keeps the heading depth.
+
+    Returns ``(level, heading, body)`` where ``level`` is the number of leading
+    ``=`` characters (only symmetric runs of length 3–8 count as headings, so
+    formula composition lines containing ``==`` are not mistaken for headings).
+    """
+    text = re.sub(r"<book>.*?</book>", "", text, flags=re.DOTALL)
+    out: List[Tuple[int, str, str]] = []
+    cur_level, cur_head = 0, ""
+    cur_lines: List[str] = []
+
+    def flush() -> None:
+        body = "\n".join(cur_lines).strip()
+        if body or cur_head:
+            out.append((cur_level, cur_head, body))
+
+    for line in text.splitlines():
+        m = _LEVEL_HEADING_RE.match(line.strip())
+        if m and len(m.group(1)) == len(m.group(3)) and 3 <= len(m.group(1)) <= 8:
+            flush()
+            cur_level = len(m.group(1))
+            cur_head = m.group(2).strip()
+            cur_lines = []
+        else:
+            cur_lines.append(line)
+    flush()
+    return out
 
 
 def extract_code_block(body: str) -> str:
