@@ -10,6 +10,7 @@ The knowledge base is loaded once at startup (or built on demand if absent).
 
 from __future__ import annotations
 
+import json as _json
 from functools import lru_cache
 from pathlib import Path
 from typing import Optional
@@ -17,7 +18,7 @@ from typing import Optional
 try:
     from fastapi import FastAPI, HTTPException, Query, Request, Body
     from fastapi.staticfiles import StaticFiles
-    from fastapi.responses import FileResponse, RedirectResponse, Response
+    from fastapi.responses import FileResponse, RedirectResponse, Response, StreamingResponse
     from fastapi.middleware.cors import CORSMiddleware
 except Exception as exc:  # pragma: no cover - import guard
     raise SystemExit(
@@ -32,7 +33,7 @@ from ..store import KnowledgeBase
 
 app = FastAPI(
     title="Herb-Hermes API",
-    version="0.2.0",
+    version="0.5.0",
     description="本草—方剂—机制—发现 证据操作系统：本草溯源 / 方剂谱系 / 药对配伍 / 科研假设",
 )
 
@@ -143,21 +144,100 @@ def llm_status_ep() -> dict:
     return llm_status()
 
 
+@app.get("/llm/models")
+def llm_models() -> dict:
+    """Return grouped model catalogue for the frontend settings panel."""
+    from ..llm.client import _available_models
+    return _available_models()
+
+
+def _make_client(payload: dict):
+    from ..llm.client import LLMClient
+    return LLMClient(
+        model=(payload or {}).get("model") or None,
+        api_key=(payload or {}).get("api_key") or None,
+        api_base=(payload or {}).get("api_base") or None,
+    )
+
+
 @app.post("/agent/ask")
 def agent_ask(payload: dict = Body(...)) -> dict:
-    """自主智能体问答：LLM 调用接地工具检索古籍证据后作答。
-    未配置 LLM 时返回 503（前端回退到规则检索）。"""
-    from ..llm.client import LLMClient
+    """自主智能体问答（非流式）。未配置 LLM 时返回 503。
+    可在请求体中传入 model / api_key / api_base 覆盖服务端配置。"""
     from ..llm.agent import HerbAgent
     question = (payload or {}).get("question", "").strip()
     if not question:
         raise HTTPException(400, "question is required")
-    client = LLMClient()
+    client = _make_client(payload)
     if not client.available:
         raise HTTPException(503,
-            "未配置 LLM。请安装 litellm 并设置 HERB_HERMES_LLM_MODEL 及 API Key。")
+            "未配置 LLM。请安装 litellm 并设置 HERB_HERMES_LLM_MODEL 及 API Key，"
+            "或在请求体传入 model/api_key。")
     agent = HerbAgent(get_kb(), client, max_steps=int((payload or {}).get("max_steps", 6)))
     return agent.ask(question, history=(payload or {}).get("history")).to_dict()
+
+
+@app.post("/agent/stream")
+async def agent_stream(payload: dict = Body(...)):
+    """SSE 流式智能体。事件类型：thinking / tool / done / error。
+    可在请求体传入 model / api_key / api_base 覆盖服务端配置。"""
+    import asyncio
+    from concurrent.futures import ThreadPoolExecutor
+    from ..llm.agent import HerbAgent
+
+    question = (payload or {}).get("question", "").strip()
+    if not question:
+        raise HTTPException(400, "question is required")
+
+    client = _make_client(payload)
+    if not client.available:
+        raise HTTPException(503, "未配置 LLM")
+
+    loop = asyncio.get_event_loop()
+    q: asyncio.Queue = asyncio.Queue()
+
+    def on_step(step):
+        asyncio.run_coroutine_threadsafe(
+            q.put({"type": "tool", "step": step.to_dict()}), loop)
+
+    def on_thinking(thinking: str):
+        asyncio.run_coroutine_threadsafe(
+            q.put({"type": "thinking", "content": thinking}), loop)
+
+    def run_agent():
+        try:
+            agent = HerbAgent(
+                get_kb(), client,
+                max_steps=int((payload or {}).get("max_steps", 6)),
+                on_step=on_step, on_thinking=on_thinking,
+            )
+            result = agent.ask(question, history=(payload or {}).get("history"))
+            asyncio.run_coroutine_threadsafe(
+                q.put({"type": "done", "result": result.to_dict()}), loop)
+        except Exception as e:
+            asyncio.run_coroutine_threadsafe(
+                q.put({"type": "error", "content": str(e)}), loop)
+
+    executor = ThreadPoolExecutor(max_workers=1)
+    executor.submit(run_agent)
+
+    async def generate():
+        try:
+            while True:
+                event = await asyncio.wait_for(q.get(), timeout=180.0)
+                yield f"data: {_json.dumps(event, ensure_ascii=False)}\n\n"
+                if event.get("type") in ("done", "error"):
+                    break
+        except asyncio.TimeoutError:
+            yield f'data: {_json.dumps({"type": "error", "content": "请求超时"})}\n\n'
+        finally:
+            executor.shutdown(wait=False)
+
+    return StreamingResponse(
+        generate(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 @app.get("/formulas")

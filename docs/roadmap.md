@@ -50,11 +50,29 @@
 - [ ] 向量检索 + GraphRAG / LightRAG（待后续）
 - [ ] Neo4j/Kùzu 图数据库后端（待后续）
 
-## v0.5（现代机制 + 审稿/安全智能体）
+## v0.5（MiniMax 接入 + UI 完整集成，已完成）
+
+- [x] **MiniMax 模型接入**：MiniMax-M3/M2.7/M2.5/M2.1/M2（含 highspeed 变体）通过
+      litellm OpenAI 兼容路由接入；自动启用 `reasoning_split=True`，思考内容
+      单独返回并在前端实时展示
+- [x] **SSE 流式智能体端点**（`POST /agent/stream`）：边推理边返回 thinking / tool / done 事件，
+      前端逐步渲染工具调用步骤与思考内容
+- [x] **前端模型配置面板**（⚙ 设置）：Provider 选择（MiniMax / OpenAI / Anthropic / Ollama / 自定义）、
+      模型选择、API Key、API Base URL，存于浏览器 `localStorage`，
+      每次 agent 请求携带 model/api_key/api_base 字段（服务端支持按请求覆盖）
+- [x] **规则化回退**：未配置 LLM 时，智能问答自动执行 BM25 检索 + 方剂谱系 + 本草溯源，
+      提供有价值的规则检索结果，并引导配置模型
+- [x] **`/llm/models` 端点**：返回分组模型目录，供前端动态渲染选择器
+- [x] **per-request 模型覆盖**：`/agent/ask` 与 `/agent/stream` 均接受请求体中的
+      `model` / `api_key` / `api_base` 字段，优先于服务端环境变量
+
+## v0.5（现代机制 + 审稿/安全智能体，待续）
 
 - [ ] TCMSP / HERB / ETCM / SymMap / GEO / KEGG 真实现代机制接入（填充假设卡现代证据）
 - [ ] 反证审稿 Agent、安全审查 Agent（药典 2025 + 十八反十九畏硬约束）
 - [ ] 论文/课题草案生成
+- [ ] 向量检索 + GraphRAG / LightRAG
+- [ ] Neo4j/Kùzu 图数据库后端
 
 ## 病种扩展顺序
 
